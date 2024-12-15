@@ -1,10 +1,17 @@
+// Because we don't build the crate as an `rlib` (for `trunk` to work), we
+// declare the module twice.
+//
+// Perhaps a better solution is to rename the binary, so we don't compile the
+// modules twice.
+pub mod app;
+
 #[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {
+    use crate::app::{shell, App};
     use axum::Router;
     use leptos::{logging::log, prelude::*};
     use leptos_axum::{generate_route_list, LeptosRoutes};
-    use stacktrace::app::{shell, App};
 
     let conf = get_configuration(None).unwrap();
     let addr = conf.leptos_options.site_addr;
@@ -29,7 +36,23 @@ async fn main() {
         .unwrap();
 }
 
-#[cfg(not(feature = "ssr"))]
+#[cfg(feature = "csr")]
+pub fn main() {
+    use leptos::logging::log;
+
+    use crate::app::App;
+
+    // client-side main function
+    // so that this can work with e.g. Trunk for a purely client-side app
+    // _ = console_log::init_with_level(log::Level::Debug);
+    console_error_panic_hook::set_once();
+
+    log!("csr mode - mounting to body");
+
+    leptos::mount::mount_to_body(App);
+}
+
+#[cfg(all(not(feature = "ssr"), not(feature = "csr")))]
 pub fn main() {
     // no client-side main function
     // unless we want this to work with e.g., Trunk for pure client-side testing

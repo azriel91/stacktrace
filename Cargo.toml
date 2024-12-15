@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
-crate-type = ["cdylib", "rlib"]
+crate-type = ["cdylib"] # no "rlib" because that prevents trunk from building
 
 [dependencies]
 leptos = { version = "0.7.0" }
@@ -22,6 +22,9 @@ http = "1"
 
 [features]
 hydrate = ["leptos/hydrate"]
+csr = [
+    "leptos/csr",
+]
 ssr = [
     "dep:axum",
     "dep:tokio",
@@ -53,7 +56,9 @@ site-root = "target/site"
 site-pkg-dir = "pkg"
 
 # [Optional] The source CSS file. If it ends with .sass or .scss then it will be compiled by dart-sass into CSS. The CSS is optimized by Lightning CSS before being written to <site-root>/<site-pkg>/app.css
-style-file = "style/main.scss"
+# style-file = "style/main.scss"
+tailwind-input-file = "style/tailwind.css"
+tailwind-config-file = "style/tailwind.config.js"
 # Assets source dir. All files found here will be copied and synchronized to site-root.
 # The assets-dir cannot have a sub directory with the same name/path as site-pkg-dir.
 #

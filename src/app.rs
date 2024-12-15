@@ -1,14 +1,17 @@
+use std::time::Duration;
+
 use leptos::{
     component,
     hydration::{AutoReload, HydrationScripts},
     prelude::{
-        ElementChild, GlobalAttributes, IntoView, LeptosOptions, OnAttribute, RwSignal, Write,
+        signal, ClassAttribute, ElementChild, Get, GlobalAttributes, IntoView, LeptosOptions,
+        OnAttribute, RwSignal, Write,
     },
     view,
 };
 use leptos_meta::{provide_meta_context, MetaTags, Stylesheet, Title};
 use leptos_router::{
-    components::{Route, Router, Routes},
+    components::{Route, Router, Routes, RoutingProgress},
     StaticSegment,
 };
 
@@ -35,19 +38,26 @@ pub fn App() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
     provide_meta_context();
 
+    let site_prefix = option_env!("SITE_PREFIX").unwrap_or("");
+
+    let (is_routing, set_is_routing) = signal(false);
+
     view! {
         // injects a stylesheet into the document <head>
         // id=leptos means cargo-leptos will hot-reload this stylesheet
         <Stylesheet id="leptos" href="/pkg/stacktrace.css"/>
 
         // sets the document title
-        <Title text="Welcome to Leptos"/>
+        <Title text="stacktrace • azriel.im"/>
 
         // content for this welcome page
-        <Router>
+        <Router set_is_routing>
+            <div class="routing-progress">
+                <RoutingProgress is_routing max_time=Duration::from_millis(250)/>
+            </div>
             <main>
-                <Routes fallback=|| "Page not found.".into_view()>
-                    <Route path=StaticSegment("") view=HomePage/>
+                <Routes fallback=RouterFallback>
+                    <Route path=StaticSegment(site_prefix) view=HomePage />
                 </Routes>
             </main>
         </Router>
@@ -64,5 +74,15 @@ fn HomePage() -> impl IntoView {
     view! {
         <h1>"Welcome to Leptos!"</h1>
         <button on:click=on_click>"Click Me: " {count}</button>
+    }
+}
+
+#[component]
+fn RouterFallback() -> impl IntoView {
+    let location = leptos_router::hooks::use_location();
+    let pathname = move || location.pathname.get();
+
+    view! {
+        <p>"Path not found: " {pathname}</p>
     }
 }
