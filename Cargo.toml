@@ -7,16 +7,31 @@ edition = "2021"
 crate-type = ["cdylib"] # no "rlib" because that prevents trunk from building
 
 [dependencies]
-leptos = { version = "0.7.0" }
-leptos_router = { version = "0.7.0" }
-axum = { version = "0.7", optional = true }
+leptos = { workspace = true }
+leptos_router = { workspace = true }
+axum = { workspace = true, optional = true }
+console_error_panic_hook = { workspace = true }
+leptos_axum = { workspace = true, optional = true }
+leptos_dom = { workspace = true }
+leptos_meta = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread"], optional = true }
+tower = { workspace = true, optional = true }
+tower-http = { workspace = true, features = ["fs"], optional = true }
+wasm-bindgen = { workspace = true }
+thiserror = { workspace = true }
+http = { workspace = true }
+
+[workspace.dependencies]
+leptos = "0.7.0"
+leptos_router = "0.7.0"
+axum = "0.7"
 console_error_panic_hook = "0.1"
-leptos_axum = { version = "0.7.0", optional = true }
-leptos_dom = { version = "0.7.0" }
-leptos_meta = { version = "0.7.0" }
-tokio = { version = "1", features = ["rt-multi-thread"], optional = true }
-tower = { version = "0.4", optional = true }
-tower-http = { version = "0.5", features = ["fs"], optional = true }
+leptos_axum = "0.7.0"
+leptos_dom = "0.7.0"
+leptos_meta = "0.7.0"
+tokio = "1"
+tower = "0.4"
+tower-http = "0.5"
 wasm-bindgen = "=0.2.99"
 thiserror = "1"
 http = "1"
