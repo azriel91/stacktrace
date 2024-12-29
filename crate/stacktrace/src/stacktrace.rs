@@ -1,5 +1,3 @@
-use crate::Line;
-
 use crate::Section;
 
 /// Parses a stack trace string into a structured stack trace.
@@ -9,10 +7,7 @@ pub struct Stacktrace {
 }
 
 impl<'s> From<&'s str> for Stacktrace {
-    fn from(s: &'s str) -> Self {
-        // First parse into `Line`s
-        s.lines().map(Line::from);
-
+    fn from(_s: &'s str) -> Self {
         todo!();
     }
 }

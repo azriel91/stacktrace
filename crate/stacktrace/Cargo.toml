@@ -5,5 +5,4 @@ edition = "2021"
 
 [dependencies]
 flat_string = { workspace = true }
-nom = { workspace = true }
 smallvec = { workspace = true }

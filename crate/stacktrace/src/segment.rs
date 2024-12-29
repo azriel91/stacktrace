@@ -1,5 +1,4 @@
 use flat_string::FlatString;
-use nom::IResult;
 
 /// A segment of text that should be treated as a whole.
 ///
@@ -19,10 +18,4 @@ pub struct Segment {
     pub text: String,
     /// Any punctuation separator prior to the next group.
     pub separator: Option<FlatString<2>>,
-}
-
-impl Segment {
-    pub fn parse(input: &str) -> IResult<&str, Segment> {
-        todo!()
-    }
 }
