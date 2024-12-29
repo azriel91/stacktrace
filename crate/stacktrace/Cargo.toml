@@ -1,0 +1,9 @@
+[package]
+name = "stacetrace"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+flat_string = { workspace = true }
+nom = { workspace = true }
+smallvec = { workspace = true }
