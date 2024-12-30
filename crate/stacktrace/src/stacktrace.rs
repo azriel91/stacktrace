@@ -56,7 +56,7 @@ impl Stacktrace {
 
             let section = Section {
                 id: section_id,
-                slice_common_with_ancestors,
+                slice_common_with_previous_frames: slice_common_with_ancestors,
                 slice_remainder,
                 child_sections,
             };
@@ -171,11 +171,11 @@ mod tests {
         let stacktrace_expected = Stacktrace {
             sections: vec![Section {
                 id: 0,
-                slice_common_with_ancestors: String::new(),
+                slice_common_with_previous_frames: String::new(),
                 slice_remainder: String::from("a::b::Class.method_one"),
                 child_sections: vec![Section {
                     id: 1,
-                    slice_common_with_ancestors: String::from("a::b::Class"),
+                    slice_common_with_previous_frames: String::from("a::b::Class"),
                     slice_remainder: String::from(".method_two"),
                     child_sections: Vec::new(),
                 }],
@@ -199,28 +199,28 @@ mod tests {
         let stacktrace_expected = Stacktrace {
             sections: vec![Section {
                 id: 0,
-                slice_common_with_ancestors: String::new(),
+                slice_common_with_previous_frames: String::new(),
                 slice_remainder: String::from("a::b::Class.method_one"),
                 child_sections: vec![
                     Section {
                         id: 1,
-                        slice_common_with_ancestors: String::from("a::b"),
+                        slice_common_with_previous_frames: String::from("a::b"),
                         slice_remainder: String::from("::c::Class.method_one"),
                         child_sections: Vec::new(),
                     },
                     Section {
                         id: 2,
-                        slice_common_with_ancestors: String::from("a::b::Class"),
+                        slice_common_with_previous_frames: String::from("a::b::Class"),
                         slice_remainder: String::from(".method_two"),
                         child_sections: vec![],
                     },
                     Section {
                         id: 3,
-                        slice_common_with_ancestors: String::from("a::b"),
+                        slice_common_with_previous_frames: String::from("a::b"),
                         slice_remainder: String::from("::c::Class.method_one"),
                         child_sections: vec![Section {
                             id: 4,
-                            slice_common_with_ancestors: String::from("a::b::c::Class"),
+                            slice_common_with_previous_frames: String::from("a::b::c::Class"),
                             slice_remainder: String::from(".method_two"),
                             child_sections: Vec::new(),
                         }],
@@ -245,17 +245,17 @@ mod tests {
             sections: vec![
                 Section {
                     id: 0,
-                    slice_common_with_ancestors: String::new(),
+                    slice_common_with_previous_frames: String::new(),
                     slice_remainder: String::from("__wbg_get_imports/imports.wbg.__wbg_new_abda76e883ba8a5f@http://127.0.0.1:7890/pkg/dot_ix.js:489:13"),
                     child_sections: vec![]
                 },
                 Section {
                     id: 1,
-                    slice_common_with_ancestors: String::new(),
+                    slice_common_with_previous_frames: String::new(),
                     slice_remainder: String::from("dot_ix_playground.wasm.__wbg_new_abda76e883ba8a5f externref shim@http://127.0.0.1:7890/pkg/dot_ix.wasm:wasm-function[25993]:0x6bb546"),
                     child_sections: vec![Section {
                         id: 2,
-                        slice_common_with_ancestors: String::from("dot_ix_playground.wasm"),
+                        slice_common_with_previous_frames: String::from("dot_ix_playground.wasm"),
                         slice_remainder: String::from(".console_error_panic_hook::Error::new::h8adb78d6eba1ab93@http://127.0.0.1:7890/pkg/dot_ix.wasm:wasm-function[16925]:0x636d40"),
                         child_sections: Vec::new()
                     }]

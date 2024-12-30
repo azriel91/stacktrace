@@ -7,8 +7,8 @@
 pub struct Section {
     /// Identifier for the section.
     pub id: u32,
-    /// Slice of the line that is common with ancestor `Section`s.
-    pub slice_common_with_ancestors: String,
+    /// Slice of the line that is common with previous frames.
+    pub slice_common_with_previous_frames: String,
     /// Slice of the line that is not common with ancestors.
     pub slice_remainder: String,
     /// Child `Section`s of this section.
@@ -20,8 +20,8 @@ impl Section {
         self.id
     }
 
-    pub fn slice_common_with_ancestors(&self) -> &str {
-        &self.slice_common_with_ancestors
+    pub fn slice_common_with_previous_frames(&self) -> &str {
+        &self.slice_common_with_previous_frames
     }
 
     pub fn slice_remainder(&self) -> &str {
