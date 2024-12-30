@@ -94,6 +94,7 @@ const STACKTRACE_DIV_CLASSES: &str = "\
 ";
 
 const SECTION_DIV_CLASSES: &str = "\
+    whitespace-pre \
 ";
 
 const SECTION_SLICE_COMMON_CLASSES: &str = "\
