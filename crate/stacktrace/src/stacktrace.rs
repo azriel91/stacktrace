@@ -78,13 +78,34 @@ impl Stacktrace {
                     .take_while(|(line_char, previous_line_char)| line_char == previous_line_char)
                     .enumerate()
                     .last()
-                    // `+ 1` because the enumerated index goes up to `RangeInclusive`,
-                    // whereas we want the index after the last character.
-                    .map(|(byte_index, _line_and_previous_line_char)| byte_index + 1)
+                    .map(|(commona_char_index, _line_and_previous_line_char)| commona_char_index)
+                    .and_then(|common_char_index| {
+                        Self::beginning_of_closest_separator(line, common_char_index)
+                    })
                     .map(|slice_common_end_index| line[..slice_common_end_index].to_string())
             })
             .unwrap_or_default();
         slice_common_with_ancestors
+    }
+
+    fn beginning_of_closest_separator(line: &str, common_char_index: usize) -> Option<usize> {
+        (&line[..=common_char_index])
+            .rfind(Self::is_separator)
+            .and_then(|separator_index| {
+                let line_until_separator_end = &line[..separator_index];
+                line_until_separator_end
+                    .rfind(Self::is_word_character)
+                    // `+ 1` because we want the index after the last word charater.
+                    .map(|previous_word_index| previous_word_index + 1)
+            })
+    }
+
+    fn is_separator(c: char) -> bool {
+        !Self::is_word_character(c)
+    }
+
+    fn is_word_character(c: char) -> bool {
+        char::is_alphanumeric(c) || c == '_'
     }
 
     fn line_is_better_suited_as_child_section_of_parent(
@@ -142,8 +163,8 @@ mod tests {
     fn parses_multiple_section_stacktrace_simple() {
         let stacktrace = Stacktrace::from(
             "\
-            a::b::Class.one\n\
-            a::b::Class.two\n\
+            a::b::Class.method_one\n\
+            a::b::Class.method_two\n\
             ",
         );
 
@@ -152,11 +173,11 @@ mod tests {
                 sections: vec![Section {
                     id: 0,
                     slice_common_with_ancestors: String::new(),
-                    slice_remainder: String::from("a::b::Class.one"),
+                    slice_remainder: String::from("a::b::Class.method_one"),
                     child_sections: vec![Section {
                         id: 1,
-                        slice_common_with_ancestors: String::from("a::b::Class."),
-                        slice_remainder: String::from("two"),
+                        slice_common_with_ancestors: String::from("a::b::Class"),
+                        slice_remainder: String::from(".method_two"),
                         child_sections: Vec::new()
                     }]
                 }]
@@ -190,8 +211,8 @@ mod tests {
                         slice_remainder: String::from("dot_ix_playground.wasm.__wbg_new_abda76e883ba8a5f externref shim@http://127.0.0.1:7890/pkg/dot_ix.wasm:wasm-function[25993]:0x6bb546"),
                         child_sections: vec![Section {
                             id: 2,
-                            slice_common_with_ancestors: String::from("dot_ix_playground.wasm."),
-                            slice_remainder: String::from("console_error_panic_hook::Error::new::h8adb78d6eba1ab93@http://127.0.0.1:7890/pkg/dot_ix.wasm:wasm-function[16925]:0x636d40"),
+                            slice_common_with_ancestors: String::from("dot_ix_playground.wasm"),
+                            slice_remainder: String::from(".console_error_panic_hook::Error::new::h8adb78d6eba1ab93@http://127.0.0.1:7890/pkg/dot_ix.wasm:wasm-function[16925]:0x636d40"),
                             child_sections: Vec::new()
                         }]
                     },
