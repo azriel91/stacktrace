@@ -183,7 +183,9 @@ fn StacktraceDiv(stacktrace: Signal<Stacktrace>) -> impl IntoView {
 fn SectionDiv(section: Section) -> impl IntoView {
     view! {
         <div class=SECTION_DIV_CLASSES>
-            <span class=SECTION_SLICE_COMMON_CLASSES>{section.slice_common_with_previous_frames().to_string()}</span>
+            <span class=SECTION_SLICE_COMMON_CLASSES>{
+                section.slice_common_with_previous_frames().to_string()
+            }</span>
             <span>{section.slice_remainder().to_string()}</span>
             <div>
                 <For
@@ -193,7 +195,8 @@ fn SectionDiv(section: Section) -> impl IntoView {
                 />
             </div>
         </div>
-    }.into_any()
+    }
+    .into_any()
 }
 
 fn section_hash(section: &Section) -> u64 {
