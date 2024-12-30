@@ -2,10 +2,11 @@ use std::time::Duration;
 
 use leptos::{
     component,
+    control_flow::For,
     hydration::{AutoReload, HydrationScripts},
     prelude::{
-        event_target_value, signal, ClassAttribute, ElementChild, Get, GlobalAttributes, IntoView,
-        LeptosOptions, OnAttribute, PropAttribute, RwSignal, Write,
+        event_target_value, signal, ClassAttribute, ElementChild, Get, GlobalAttributes, IntoAny,
+        IntoView, LeptosOptions, OnAttribute, PropAttribute, RwSignal, Signal, Write,
     },
     view,
 };
@@ -14,6 +15,7 @@ use leptos_router::{
     components::{Route, Router, Routes, RoutingProgress},
     StaticSegment,
 };
+use stacktrace::{Section, Stacktrace};
 
 pub fn shell(options: LeptosOptions) -> impl IntoView {
     view! {
@@ -72,6 +74,29 @@ Caused by: com.example.adder..AdderException
         ... 2 more
 "#;
 
+const STACKTRACE_DIV_CLASSES: &str = "\
+    bg-slate-700 \
+    text-slate-100 \
+    font-mono \
+    \
+    h-64 \
+    w-full \
+    lg:w-2/5 \
+    p-4 \
+    rounded-lg \
+    shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.3)] \
+    \
+    overflow-scroll \
+    text-nowrap \
+";
+
+const SECTION_DIV_CLASSES: &str = "\
+";
+
+const SECTION_SLICE_COMMON_CLASSES: &str = "\
+    opacity-20 \
+";
+
 #[component]
 pub fn App() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
@@ -111,6 +136,7 @@ fn HomePage() -> impl IntoView {
         leptos_dom::helpers::debounce(Duration::from_millis(400), move |ev| {
             *stacktrace_str.write() = event_target_value(&ev)
         });
+    let stacktrace = Signal::derive(move || Stacktrace::from(stacktrace_str.get().as_str()));
 
     view! {
         <h1 class=H1_CLASSES>
@@ -125,6 +151,8 @@ fn HomePage() -> impl IntoView {
                 move || stacktrace_str.get()
             }
         />
+
+        <StacktraceDiv stacktrace />
     }
 }
 
@@ -136,4 +164,34 @@ fn RouterFallback() -> impl IntoView {
     view! {
         <p>"Path not found: " {pathname}</p>
     }
+}
+
+#[component]
+fn StacktraceDiv(stacktrace: Signal<Stacktrace>) -> impl IntoView {
+    view! {
+        <div class=STACKTRACE_DIV_CLASSES>
+            <For
+                each=move || stacktrace.get().sections.clone()
+                key=|section| section.id
+                children=|section: Section| view! { <SectionDiv section /> }
+            />
+        </div>
+    }
+}
+
+#[component]
+fn SectionDiv(section: Section) -> impl IntoView {
+    view! {
+        <div class=SECTION_DIV_CLASSES>
+            <span class=SECTION_SLICE_COMMON_CLASSES>{section.slice_common_with_ancestors().to_string()}</span>
+            <span>{section.slice_remainder().to_string()}</span>
+            <div>
+                <For
+                    each=move || section.child_sections.clone()
+                    key=|section| section.id
+                    children=|child_section: Section| view! { <SectionDiv section=child_section /> }
+                />
+            </div>
+        </div>
+    }.into_any()
 }

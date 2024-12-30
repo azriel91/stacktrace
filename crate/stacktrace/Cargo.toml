@@ -1,7 +1,17 @@
 [package]
-name = "stacetrace"
-version = "0.1.0"
-edition = "2021"
+name = "stacktrace"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+categories.workspace = true
+keywords.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
 
 [dependencies]
 flat_string = { workspace = true }

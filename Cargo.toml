@@ -3,8 +3,27 @@ members = [
     "crate/*",
     "playground",
 ]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+authors = ["Azriel Hoh <azriel91@gmail.com>"]
+edition = "2021"
+homepage = "https://azriel.im/stacktrace"
+repository = "https://github.com/azriel91/stacktrace"
+readme = "README.md"
+categories = ["asynchronous", "config"]
+keywords = ["automation"]
+license = "MIT OR Apache-2.0"
+
+[workspace.lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(coverage_nightly)'] }
 
 [workspace.dependencies]
+# workspace crates
+stacktrace = { path = "crate/stacktrace", version = "0.1.0" }
+
+# external crates
 axum = "0.7"
 console_error_panic_hook = "0.1"
 flat_string = "1.0.1"
