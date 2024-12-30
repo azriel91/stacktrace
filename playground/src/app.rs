@@ -280,7 +280,47 @@ const SECTION_DIV_CLASSES: &str = "\
     whitespace-pre \
 ";
 
-const SECTION_SLICE_COMMON_CLASSES: &str = "\
+/// Since `peer-*` modifiers work on sibling components, and the `<input>` is
+/// nested within a `<div>`, we don't need to generate unique peer names for
+/// each `section`.
+///
+/// This also avoids needing to generate CSS based on dynamic class names --
+/// which would've required `encre`.
+const SECTION_DIV_CHECKBOX_CLASSES: &str = "\
+    peer/section \
+    hidden \
+";
+const SECTION_DIV_CHILDREN_CLASSES: &str = "peer-checked/section:hidden";
+
+/// For `bg-arrow`, see `tailwind.config.js`.
+const SECTION_DIV_TRIANGLE_CLASSES: &str = "\
+    w-4 \
+    h-4 \
+    p-1 \
+    align-text-bottom \
+    inline-block \
+    bg-arrow \
+    bg-no-repeat \
+    bg-center \
+    rotate-90 \
+    peer-checked/section:rotate-0 \
+";
+const SECTION_DIV_TRIANGLE_HIDDEN_CLASSES: &str = "\
+    w-4 \
+    h-4 \
+    p-1 \
+    align-text-bottom \
+    inline-block \
+";
+
+const SECTION_DIV_SLICE_CLASSES: &str = "\
+    pl-2.5 \
+    select-text \
+    cursor-text \
+    hover:bg-slate-500 \
+";
+
+const SECTION_DIV_SLICE_COMMON_CLASSES: &str = "\
     opacity-20 \
 ";
 
@@ -387,13 +427,46 @@ fn StacktraceDiv(stacktrace: Signal<Stacktrace>) -> impl IntoView {
 
 #[component]
 fn SectionDiv(section: Section) -> impl IntoView {
+    let section_name = {
+        let section_hash = section_hash(&section);
+        format!("section-{section_hash}")
+    };
+
+    let triangle_classes = if section.child_sections().is_empty() {
+        SECTION_DIV_TRIANGLE_HIDDEN_CLASSES
+    } else {
+        SECTION_DIV_TRIANGLE_CLASSES
+    };
+
+    // The flat structure is important:
+    //
+    // * `<input>` is used as a `peer-checked/section`
+    // * The `label` and inner `div` rely on `<input>` being a sibling element for
+    //   styling.
     view! {
         <div class=SECTION_DIV_CLASSES>
-            <span class=SECTION_SLICE_COMMON_CLASSES>{
-                section.slice_common_with_previous_frames().to_string()
-            }</span>
-            <span>{section.slice_remainder().to_string()}</span>
-            <div>
+            <input
+                id=section_name.clone()
+                name=section_name.clone()
+                type="checkbox"
+                class=SECTION_DIV_CHECKBOX_CLASSES
+            />
+            <label
+                for=section_name.clone()
+                class=triangle_classes
+            />
+            <label
+                for=section_name
+                class=SECTION_DIV_SLICE_CLASSES
+            >
+                <span class=SECTION_DIV_SLICE_COMMON_CLASSES>
+                    {section.slice_common_with_previous_frames().to_string()}
+                </span>
+                <span>
+                    {section.slice_remainder().to_string()}
+                </span>
+            </label>
+            <div class=SECTION_DIV_CHILDREN_CLASSES>
                 <For
                     each=move || section.child_sections.clone()
                     key=section_hash
