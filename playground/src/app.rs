@@ -1,4 +1,7 @@
-use std::time::Duration;
+use std::{
+    hash::{DefaultHasher, Hash, Hasher},
+    time::Duration,
+};
 
 use leptos::{
     component,
@@ -132,10 +135,7 @@ pub fn App() -> impl IntoView {
 #[component]
 fn HomePage() -> impl IntoView {
     let stacktrace_str = RwSignal::new(String::new());
-    let stacktrace_on_input =
-        leptos_dom::helpers::debounce(Duration::from_millis(400), move |ev| {
-            *stacktrace_str.write() = event_target_value(&ev)
-        });
+    let stacktrace_on_input = move |ev| *stacktrace_str.write() = event_target_value(&ev);
     let stacktrace = Signal::derive(move || Stacktrace::from(stacktrace_str.get().as_str()));
 
     view! {
@@ -172,7 +172,7 @@ fn StacktraceDiv(stacktrace: Signal<Stacktrace>) -> impl IntoView {
         <div class=STACKTRACE_DIV_CLASSES>
             <For
                 each=move || stacktrace.get().sections.clone()
-                key=|section| section.id
+                key=section_hash
                 children=|section: Section| view! { <SectionDiv section /> }
             />
         </div>
@@ -188,10 +188,16 @@ fn SectionDiv(section: Section) -> impl IntoView {
             <div>
                 <For
                     each=move || section.child_sections.clone()
-                    key=|section| section.id
+                    key=section_hash
                     children=|child_section: Section| view! { <SectionDiv section=child_section /> }
                 />
             </div>
         </div>
     }.into_any()
+}
+
+fn section_hash(section: &Section) -> u64 {
+    let mut hasher = DefaultHasher::new();
+    section.hash(&mut hasher);
+    hasher.finish()
 }

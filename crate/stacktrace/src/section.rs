@@ -3,7 +3,7 @@
 /// Constructed from a group of [`Line`]s.
 ///
 /// [`Line`]: crate::Line
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Section {
     /// Identifier for the section.
     pub id: u32,
