@@ -6,6 +6,7 @@ use std::{
 use leptos::{
     component,
     control_flow::For,
+    either::Either,
     hydration::{AutoReload, HydrationScripts},
     prelude::{
         event_target_value, signal, ClassAttribute, ElementChild, Get, GlobalAttributes, IntoAny,
@@ -61,10 +62,13 @@ const STACKTRACE_TEXT_CLASSES: &str = "\
     \
     h-64 \
     w-full \
-    lg:w-2/5 \
+    lg:w-3/5 \
     p-4 \
     rounded-lg \
     shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.3)] \
+    \
+    overflow-scroll \
+    text-nowrap \
 ";
 
 const STACKTRACE_TEXT_PLACEHOLDER: &str = r#"Paste a stack trace, e.g.
@@ -82,15 +86,21 @@ const STACKTRACE_DIV_CLASSES: &str = "\
     text-slate-100 \
     font-mono \
     \
-    h-64 \
+    h-96 \
     w-full \
-    lg:w-2/5 \
+    lg:w-3/5 \
     p-4 \
     rounded-lg \
     shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.3)] \
     \
     overflow-scroll \
     text-nowrap \
+";
+
+const STACKTRACE_DIV_PLACEHOLDER_CLASSES: &str = "\
+    opacity-75 \
+    italic \
+    select-none \
 ";
 
 const SECTION_DIV_CLASSES: &str = "\
@@ -169,14 +179,22 @@ fn RouterFallback() -> impl IntoView {
 
 #[component]
 fn StacktraceDiv(stacktrace: Signal<Stacktrace>) -> impl IntoView {
-    view! {
-        <div class=STACKTRACE_DIV_CLASSES>
-            <For
-                each=move || stacktrace.get().sections.clone()
-                key=section_hash
-                children=|section: Section| view! { <SectionDiv section /> }
-            />
-        </div>
+    if stacktrace.get().sections.is_empty() {
+        Either::Left(view! {
+            <div class=STACKTRACE_DIV_CLASSES>
+                <span class=STACKTRACE_DIV_PLACEHOLDER_CLASSES>"Paste a stacktrace into the text box above"</span>
+            </div>
+        })
+    } else {
+        Either::Right(view! {
+            <div class=STACKTRACE_DIV_CLASSES>
+                <For
+                    each=move || stacktrace.get().sections.clone()
+                    key=section_hash
+                    children=|section: Section| view! { <SectionDiv section /> }
+                />
+            </div>
+        })
     }
 }
 
