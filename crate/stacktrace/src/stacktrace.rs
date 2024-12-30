@@ -23,19 +23,10 @@ impl Stacktrace {
             // if the slice common with ancestors is shorter than or equal to the previous
             // line's slice common length, then this line should be a subsection of the
             // parent section
-            let should_return_early = previous_section_info
-                .map(PreviousSectionInfo::slice_common_len)
-                .as_ref()
-                .map(|previous_line_slice_common_len| {
-                    slice_common_with_ancestors
-                        .len()
-                        .cmp(previous_line_slice_common_len)
-                })
-                .map(|comparison| match comparison {
-                    Ordering::Less | Ordering::Equal => true,
-                    Ordering::Greater => false,
-                })
-                .unwrap_or(false);
+            let should_return_early = Self::line_is_better_suited_as_child_section_of_parent(
+                previous_section_info,
+                &slice_common_with_ancestors,
+            );
             match should_return_early {
                 true => return sections,
                 false => {}
@@ -94,6 +85,25 @@ impl Stacktrace {
             })
             .unwrap_or_default();
         slice_common_with_ancestors
+    }
+
+    fn line_is_better_suited_as_child_section_of_parent(
+        previous_section_info: Option<PreviousSectionInfo<'_>>,
+        slice_common_with_ancestors: &String,
+    ) -> bool {
+        previous_section_info
+            .map(PreviousSectionInfo::slice_common_len)
+            .as_ref()
+            .map(|previous_line_slice_common_len| {
+                slice_common_with_ancestors
+                    .len()
+                    .cmp(previous_line_slice_common_len)
+            })
+            .map(|comparison| match comparison {
+                Ordering::Less | Ordering::Equal => true,
+                Ordering::Greater => false,
+            })
+            .unwrap_or(false)
     }
 }
 
