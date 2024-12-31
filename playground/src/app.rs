@@ -15,7 +15,7 @@ use leptos::{
 };
 use leptos_meta::{provide_meta_context, MetaTags, Stylesheet, Title};
 use leptos_router::{
-    components::{Route, Router, Routes, RoutingProgress},
+    components::{Route, Router, Routes, RoutingProgress, A},
     StaticSegment,
 };
 use stacktrace::{Section, Stacktrace};
@@ -42,7 +42,18 @@ const H1_CLASSES: &str = "\
     font-bold \
     font-mono \
     text-3xl \
-    mb-4 \
+";
+
+const NAV_CLASSES: &str = "\
+    bg-slate-800 \
+    text-slate-100 \
+    flex \
+    p-8 \
+    pb-0 \
+";
+
+const NAV_SPACER_CLASSES: &str = "\
+    grow \
 ";
 
 const MAIN_CLASSES: &str = "\
@@ -52,6 +63,7 @@ const MAIN_CLASSES: &str = "\
     h-dvh \
     w-dvw \
     p-8 \
+    pt-0 \
 ";
 
 const STACKTRACE_TEXT_CLASSES: &str = "\
@@ -346,6 +358,14 @@ pub fn App() -> impl IntoView {
             <div class="routing-progress">
                 <RoutingProgress is_routing max_time=Duration::from_millis(250)/>
             </div>
+            <nav class=NAV_CLASSES>
+                <h1 class=H1_CLASSES>"stacktrace"</h1>
+                <div class=NAV_SPACER_CLASSES />
+                <A
+                    href="https://github.com/azriel91/stacktrace"
+                    target="_blank"
+                >"🐙 github"</A>
+            </nav>
             <main class=MAIN_CLASSES>
                 <Routes fallback=RouterFallback>
                     <Route path=StaticSegment(site_prefix) view=HomePage />
@@ -363,8 +383,6 @@ fn HomePage() -> impl IntoView {
     let stacktrace = Signal::derive(move || Stacktrace::from(stacktrace_str.get().as_str()));
 
     view! {
-        <h1 class=H1_CLASSES>"stacktrace"</h1>
-
         <StacktraceSamples stacktrace_str />
         <textarea
             class=STACKTRACE_TEXT_CLASSES
