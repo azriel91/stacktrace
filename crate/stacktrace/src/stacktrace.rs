@@ -27,9 +27,8 @@ impl Stacktrace {
                 previous_section_info,
                 &slice_common_with_ancestors,
             );
-            match should_return_early {
-                true => return sections,
-                false => {}
+            if should_return_early {
+                return sections;
             }
 
             let slice_remainder = match slice_common_with_ancestors.len() == line.len() {
@@ -89,7 +88,7 @@ impl Stacktrace {
     }
 
     fn beginning_of_closest_separator(line: &str, common_char_index: usize) -> Option<usize> {
-        (&line[..=common_char_index])
+        line[..=common_char_index]
             .rfind(Self::is_separator)
             .and_then(|separator_index| {
                 let line_until_separator_end = &line[..separator_index];
