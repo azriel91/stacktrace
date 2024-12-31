@@ -95,7 +95,7 @@ impl Stacktrace {
                 let line_until_separator_end = &line[..separator_index];
                 line_until_separator_end
                     .rfind(Self::is_word_character)
-                    // `+ 1` because we want the index after the last word charater.
+                    // `+ 1` because we want the index after the last word character.
                     .map(|previous_word_index| previous_word_index + 1)
             })
     }
@@ -235,8 +235,8 @@ mod tests {
     fn parses_multiple_section_stacktrace_wasm() {
         let stacktrace = Stacktrace::from(
             "\
-            __wbg_get_imports/imports.wbg.__wbg_new_abda76e883ba8a5f@http://127.0.0.1:7890/pkg/dot_ix.js:489:13\n\
-            dot_ix_playground.wasm.__wbg_new_abda76e883ba8a5f externref shim@http://127.0.0.1:7890/pkg/dot_ix.wasm:wasm-function[25993]:0x6bb546\n\
+            __wbg_get_imports/imports.wbg.__wbg_new_abda76e883b18a5f@http://127.0.0.1:7890/pkg/dot_ix.js:489:13\n\
+            dot_ix_playground.wasm.__wbg_new_abda76e883b18a5f externref shim@http://127.0.0.1:7890/pkg/dot_ix.wasm:wasm-function[25993]:0x6bb546\n\
             dot_ix_playground.wasm.console_error_panic_hook::Error::new::h8adb78d6eba1ab93@http://127.0.0.1:7890/pkg/dot_ix.wasm:wasm-function[16925]:0x636d40\n\
             ",
         );
@@ -246,13 +246,13 @@ mod tests {
                 Section {
                     id: 0,
                     slice_common_with_previous_frames: String::new(),
-                    slice_remainder: String::from("__wbg_get_imports/imports.wbg.__wbg_new_abda76e883ba8a5f@http://127.0.0.1:7890/pkg/dot_ix.js:489:13"),
+                    slice_remainder: String::from("__wbg_get_imports/imports.wbg.__wbg_new_abda76e883b18a5f@http://127.0.0.1:7890/pkg/dot_ix.js:489:13"),
                     child_sections: vec![]
                 },
                 Section {
                     id: 1,
                     slice_common_with_previous_frames: String::new(),
-                    slice_remainder: String::from("dot_ix_playground.wasm.__wbg_new_abda76e883ba8a5f externref shim@http://127.0.0.1:7890/pkg/dot_ix.wasm:wasm-function[25993]:0x6bb546"),
+                    slice_remainder: String::from("dot_ix_playground.wasm.__wbg_new_abda76e883b18a5f externref shim@http://127.0.0.1:7890/pkg/dot_ix.wasm:wasm-function[25993]:0x6bb546"),
                     child_sections: vec![Section {
                         id: 2,
                         slice_common_with_previous_frames: String::from("dot_ix_playground.wasm"),
