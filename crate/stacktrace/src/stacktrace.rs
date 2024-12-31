@@ -109,7 +109,7 @@ impl Stacktrace {
 
     fn line_is_better_suited_as_child_section_of_parent(
         previous_section_info: Option<PreviousSectionInfo<'_>>,
-        slice_common_with_ancestors: &String,
+        slice_common_with_ancestors: &str,
     ) -> bool {
         previous_section_info
             .map(PreviousSectionInfo::slice_common_len)
