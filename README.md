@@ -1,91 +1,60 @@
-<picture>
-    <source srcset="https://raw.githubusercontent.com/leptos-rs/leptos/main/docs/logos/Leptos_logo_Solid_White.svg" media="(prefers-color-scheme: dark)">
-    <img src="https://raw.githubusercontent.com/leptos-rs/leptos/main/docs/logos/Leptos_logo_RGB.svg" alt="Leptos Logo">
-</picture>
+# 📚 stacktrace
 
-# Leptos Axum Starter Template
+[![CI](https://github.com/azriel91/stacktrace/workflows/CI/badge.svg)](https://github.com/azriel91/stacktrace/actions/workflows/ci.yml)
 
-This is a template for use with the [Leptos](https://github.com/leptos-rs/leptos) web framework and the [cargo-leptos](https://github.com/akesson/cargo-leptos) tool using [Axum](https://github.com/tokio-rs/axum).
+`stacktrace` helps you see the relevant parts of a stack trace.
 
-## Creating your template repo
+![](./doc/example.svg)
 
-If you don't have `cargo-leptos` installed you can install it with
 
-```bash
-cargo install cargo-leptos --locked
-```
+## Development
 
-Then run
-```bash
-cargo leptos new --git https://github.com/leptos-rs/start-axum-0.7
-```
+1. Clone the repository.
 
-to generate a new project template.
+    ```bash
+    git clone git@github.com:azriel91/stacktrace.git
+    cd stacktrace
+    ```
 
-```bash
-cd stacktrace
-```
+2. Install [trunk](https://trunkrs.dev/):
 
-to go to your newly created project.  
-Feel free to explore the project structure, but the best place to start with your application code is in `src/app.rs`.  
-Addtionally, Cargo.toml may need updating as new versions of the dependencies are released, especially if things are not working after a `cargo update`.
+    ```bash
+    cargo install --locked trunk
+    ```
 
-## Running your project
+3. Run the playground:
 
-```bash
-cargo leptos watch
-```
+    ```bash
+    cd playground
+    trunk serve -v
+    ```
 
-## Installing Additional Tools
 
-By default, `cargo-leptos` uses `nightly` Rust, `cargo-generate`, and `sass`. If you run into any trouble, you may need to install one or more of these tools.
+## Ideas
 
-1. `rustup toolchain install nightly --allow-downgrade` - make sure you have Rust nightly
-2. `rustup target add wasm32-unknown-unknown` - add the ability to compile Rust to WebAssembly
-3. `cargo install cargo-generate` - install `cargo-generate` binary (should be installed automatically in future)
-4. `npm install -g sass` - install `dart-sass` (should be optional in future
-5. Run `npm install` in end2end subdirectory before test
+> Not in any particular order.
+>
+> This is indefinite -- I may not actually have the time to do them, feel free to contribute.
 
-## Compiling for Release
-```bash
-cargo leptos build --release
-```
+1. [x] Client side static web application.
+2. [x] Collapsible frames.
+3. [ ] Parse lines with different leading segments.
+4. [ ] Collapsible segments based on common modules.
+5. [ ] Detect file names, one-click copy.
+6. [ ] Rename this, so it can be published on `crates.io` and used as a library.
 
-Will generate your server binary in target/server/release and your site package in target/site
 
-## Testing Your Project
-```bash
-cargo leptos end-to-end
-```
+## License
 
-```bash
-cargo leptos end-to-end --release
-```
+Licensed under either of
 
-Cargo-leptos uses Playwright as the end-to-end test tool.  
-Tests are located in end2end/tests directory.
+* Apache License, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or https://www.apache.org/licenses/LICENSE-2.0)
+* MIT license ([LICENSE-MIT](LICENSE-MIT) or https://opensource.org/licenses/MIT)
 
-## Executing a Server on a Remote Machine Without the Toolchain
-After running a `cargo leptos build --release` the minimum files needed are:
+at your option.
 
-1. The server binary located in `target/server/release`
-2. The `site` directory and all files within located in `target/site`
 
-Copy these files to your remote server. The directory structure should be:
-```text
-stacktrace
-site/
-```
-Set the following environment variables (updating for your project as needed):
-```text
-LEPTOS_OUTPUT_NAME="stacktrace"
-LEPTOS_SITE_ROOT="site"
-LEPTOS_SITE_PKG_DIR="pkg"
-LEPTOS_SITE_ADDR="127.0.0.1:3000"
-LEPTOS_RELOAD_PORT="3001"
-```
-Finally, run the server binary.
+### Contribution
 
-## Licensing
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
 
-This template itself is released under the Unlicense. You should replace the LICENSE for your own application with an appropriate license if you plan to release it publicly.

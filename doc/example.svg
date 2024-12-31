@@ -1,0 +1,34 @@
+<svg width="750" height="160" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="0" width="750" height="160" rx="8" ry="8" />
+  <text>
+    <tspan x="30" y="20" class="normal">java.lang.Exception: foo</tspan>
+    <tspan x="30" y="40" class="normal">&#160;&#160;&#160;&#160;com.example.stacktrace.Example.fail(Example.java:23)</tspan>
+    <tspan x="30" y="60" class="faded">&#160;&#160;&#160;&#160;com.example.stacktrace.Example</tspan><tspan y="60" class="normal">.run(Example.java:11)</tspan>
+    <tspan x="30" y="80" class="normal">&#160;&#160;&#160;&#160;sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)</tspan>
+    <tspan x="30" y="100" class="faded">&#160;&#160;&#160;&#160;sun.reflect.NativeMethodAccessorImpl</tspan><tspan y="100" class="normal">.invoke(NativeMethodAccessorImpl.java:62)</tspan>
+    <tspan x="30" y="120" class="faded">&#160;&#160;&#160;&#160;sun.reflect</tspan><tspan y="120" class="normal">.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)</tspan>
+    <tspan x="30" y="140" class="normal">&#160;&#160;&#160;&#160;java.lang.reflect.Method.invoke(Method.java:483)</tspan>
+  </text>
+
+  <defs>
+    <path id="arrow" d='M 0 0 L 8 5 L 0 10 Z' fill='black' stroke='black' transform="rotate(90 0 0)" />
+  </defs>
+
+  <use href="#arrow" x="18" y="33" />
+  <use href="#arrow" x="18" y="73" />
+
+  <style>
+    <![CDATA[
+      rect {
+        fill: #0f172a;
+      }
+      text {
+        font: 15px monospace;
+        fill: #ddddff;
+      }
+      .faded {
+        opacity: 0.2;
+      }
+    ]]>
+  </style>
+</svg>
