@@ -38,6 +38,19 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
     }
 }
 
+const PAGE_CLASSES: &str = "\
+    bg-slate-800 \
+    text-slate-100 \
+    \
+    h-dvh \
+    w-dvw \
+    p-8 \
+    \
+    flex \
+    flex-col \
+    justify-start \
+";
+
 const H1_CLASSES: &str = "\
     font-bold \
     font-mono \
@@ -48,8 +61,7 @@ const NAV_CLASSES: &str = "\
     bg-slate-800 \
     text-slate-100 \
     flex \
-    p-8 \
-    pb-0 \
+    pb-8 \
 ";
 
 const NAV_SPACER_CLASSES: &str = "\
@@ -57,13 +69,14 @@ const NAV_SPACER_CLASSES: &str = "\
 ";
 
 const MAIN_CLASSES: &str = "\
-    bg-slate-800 \
-    text-slate-100 \
-    \
-    h-dvh \
-    w-dvw \
-    p-8 \
-    pt-0 \
+    flex \
+    justify-center \
+";
+
+const HOMEPAGE_CLASSES: &str = "\
+    h-full \
+    w-full \
+    lg:max-w-7xl \
 ";
 
 const STACKTRACE_TEXT_CLASSES: &str = "\
@@ -73,7 +86,7 @@ const STACKTRACE_TEXT_CLASSES: &str = "\
     \
     h-64 \
     w-full \
-    lg:w-3/5 \
+    lg:max-w-7xl \
     p-4 \
     rounded-lg \
     shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.3)] \
@@ -96,7 +109,7 @@ const STACKTRACE_SAMPLES_DIV_CLASSES: &str = "\
     flex \
     justify-end \
     w-full \
-    lg:w-3/5 \
+    lg:max-w-7xl \
 ";
 
 const STACKTRACE_SAMPLE_JAVA: &str = r#"java.lang.IllegalArgumentException: foo
@@ -271,9 +284,9 @@ const STACKTRACE_DIV_CLASSES: &str = "\
     text-slate-100 \
     font-mono \
     \
-    h-96 \
+    h-[36rem] \
     w-full \
-    lg:w-3/5 \
+    lg:max-w-7xl \
     p-4 \
     rounded-lg \
     shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.3)] \
@@ -355,22 +368,24 @@ pub fn App() -> impl IntoView {
 
         // content for this welcome page
         <Router set_is_routing>
-            <div class="routing-progress">
-                <RoutingProgress is_routing max_time=Duration::from_millis(250)/>
+            <div class=PAGE_CLASSES>
+                <div class="routing-progress">
+                    <RoutingProgress is_routing max_time=Duration::from_millis(250)/>
+                </div>
+                <nav class=NAV_CLASSES>
+                    <h1 class=H1_CLASSES>"stacktrace"</h1>
+                    <div class=NAV_SPACER_CLASSES />
+                    <A
+                        href="https://github.com/azriel91/stacktrace"
+                        target="_blank"
+                    >"🐙 github"</A>
+                </nav>
+                <main class=MAIN_CLASSES>
+                    <Routes fallback=RouterFallback>
+                        <Route path=StaticSegment(site_prefix) view=HomePage />
+                    </Routes>
+                </main>
             </div>
-            <nav class=NAV_CLASSES>
-                <h1 class=H1_CLASSES>"stacktrace"</h1>
-                <div class=NAV_SPACER_CLASSES />
-                <A
-                    href="https://github.com/azriel91/stacktrace"
-                    target="_blank"
-                >"🐙 github"</A>
-            </nav>
-            <main class=MAIN_CLASSES>
-                <Routes fallback=RouterFallback>
-                    <Route path=StaticSegment(site_prefix) view=HomePage />
-                </Routes>
-            </main>
         </Router>
     }
 }
@@ -383,17 +398,19 @@ fn HomePage() -> impl IntoView {
     let stacktrace = Signal::derive(move || Stacktrace::from(stacktrace_str.get().as_str()));
 
     view! {
-        <StacktraceSamples stacktrace_str />
-        <textarea
-            class=STACKTRACE_TEXT_CLASSES
-            on:input=stacktrace_on_input
-            placeholder=STACKTRACE_TEXT_PLACEHOLDER
-            prop:value={
-                move || stacktrace_str.get()
-            }
-        />
+        <div class=HOMEPAGE_CLASSES>
+            <StacktraceSamples stacktrace_str />
+            <textarea
+                class=STACKTRACE_TEXT_CLASSES
+                on:input=stacktrace_on_input
+                placeholder=STACKTRACE_TEXT_PLACEHOLDER
+                prop:value={
+                    move || stacktrace_str.get()
+                }
+            />
 
-        <StacktraceDiv stacktrace />
+            <StacktraceDiv stacktrace />
+        </div>
     }
 }
 
