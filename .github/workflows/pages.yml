@@ -41,9 +41,6 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Download and install tailwindcss binary
-        run: npm install -D tailwindcss
-
       - name: Download and install Trunk binary
         run: wget -qO- https://github.com/thedodd/trunk/releases/latest/download/trunk-x86_64-unknown-linux-gnu.tar.gz | tar -xzf-
 
