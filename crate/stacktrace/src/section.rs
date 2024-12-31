@@ -1,8 +1,7 @@
-/// A hierarchical structure of frames that have the same leading [`Group`]s.
+/// A hierarchical structure of frames that have the same leading characters.
 ///
-/// Constructed from a group of [`Line`]s.
-///
-/// [`Line`]: crate::Line
+/// Currently this doesn't cater for stack traces where each frame is prefixed
+/// with line numbers.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Section {
     /// Identifier for the section.
