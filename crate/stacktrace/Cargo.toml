@@ -15,4 +15,6 @@ workspace = true
 
 [dependencies]
 flat_string = { workspace = true }
+pest = { workspace = true }
+pest_derive = { workspace = true }
 smallvec = { workspace = true }
