@@ -1,14 +1,8 @@
 //! Contains types for semantic logs.
 
-pub use self::{
-    log_block::LogBlock, log_block_normal::LogBlockNormal, log_block_stacktrace::LogBlockStacktrace,
-};
-
-pub mod java;
+pub use self::log_block::LogBlock;
 
 mod log_block;
-mod log_block_normal;
-mod log_block_stacktrace;
 
 /// Logs with semantic information augmented to ease clear presentation.
 ///
@@ -23,6 +17,6 @@ mod log_block_stacktrace;
 /// * Arbitrary grouped log messages.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct SemLog<'s> {
-    /// Each of the parsed log blocks in the log.
-    pub log_blocks: Vec<LogBlock<'s>>,
+    /// Each of the parsed log entries in the log.
+    pub log_entries: Vec<LogBlock<'s>>,
 }
