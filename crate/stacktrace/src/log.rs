@@ -2,6 +2,8 @@ pub use self::{
     log_block::LogBlock, log_block_normal::LogBlockNormal, log_block_stacktrace::LogBlockStacktrace,
 };
 
+pub mod java;
+
 mod log_block;
 mod log_block_normal;
 mod log_block_stacktrace;

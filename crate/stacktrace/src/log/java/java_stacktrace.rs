@@ -1,7 +1,7 @@
 use pest::iterators::Pair;
 
 use crate::{
-    java::{JavaStacktraceFrame, JavaStacktraceHeader},
+    log::java::{JavaStacktraceFrame, JavaStacktraceHeader},
     log_parser::Rule,
 };
 

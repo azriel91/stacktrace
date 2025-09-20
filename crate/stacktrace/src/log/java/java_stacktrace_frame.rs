@@ -4,7 +4,7 @@ use pest::iterators::Pair;
 
 use crate::{
     file::FilePathAndLine,
-    java::{JavaClassNameQualified, JavaMethodName},
+    log::java::{JavaClassNameQualified, JavaMethodName},
     log_parser::Rule,
 };
 

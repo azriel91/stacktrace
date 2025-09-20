@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use pest::iterators::Pair;
 
-use crate::{java::JavaClassNameSegment, log_parser::Rule};
+use crate::{log::java::JavaClassNameSegment, log_parser::Rule};
 
 /// The simple class name, e.g. `Example$Exception$0` in
 /// `com.example.stacktrace.Example$Exception$0`.
@@ -50,7 +50,7 @@ mod tests {
     use pest::Parser;
 
     use crate::{
-        java::{JavaClassNameSegment, JavaClassNameSimple},
+        log::java::{JavaClassNameSegment, JavaClassNameSimple},
         log_parser::Rule,
         LogParser,
     };

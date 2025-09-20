@@ -1,6 +1,6 @@
 use pest::iterators::Pair;
 
-use crate::{java::JavaIdentifierLower, log_parser::Rule};
+use crate::{log::java::JavaIdentifierLower, log_parser::Rule};
 
 /// One package segment, e.g. `example` in `com.example.stacktrace`.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -36,7 +36,7 @@ mod tests {
     use pest::Parser;
 
     use crate::{
-        java::{JavaIdentifierLower, JavaPackageSegment},
+        log::java::{JavaIdentifierLower, JavaPackageSegment},
         log_parser::Rule,
         LogParser,
     };

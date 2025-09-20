@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use pest::iterators::Pair;
 
 use crate::{
-    java::{
+    log::java::{
         JavaStacktraceHeaderException, JavaStacktraceHeaderMessage, JavaStacktraceHeaderThread,
     },
     log_parser::Rule,
@@ -99,7 +99,7 @@ mod tests {
     use pest::Parser;
 
     use crate::{
-        java::{
+        log::java::{
             JavaClassNameQualified, JavaClassNameSegment, JavaClassNameSimple, JavaIdentifierLower,
             JavaPackage, JavaPackageSegment, JavaStacktraceHeader, JavaStacktraceHeaderException,
             JavaStacktraceHeaderMessage, JavaStacktraceHeaderThread, JavaThreadName,

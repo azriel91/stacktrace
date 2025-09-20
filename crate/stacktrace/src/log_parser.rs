@@ -41,13 +41,16 @@ mod tests {
 
     use crate::{
         file::{FilePath, FilePathAndLine},
-        java::{
-            JavaClassNameQualified, JavaClassNameSegment, JavaClassNameSimple, JavaIdentifier,
-            JavaIdentifierLower, JavaMethodName, JavaPackage, JavaPackageSegment, JavaStacktrace,
-            JavaStacktraceFrame, JavaStacktraceHeader, JavaStacktraceHeaderException,
-            JavaStacktraceHeaderMessage, JavaStacktraceHeaderThread, JavaThreadName,
+        log::{
+            java::{
+                JavaClassNameQualified, JavaClassNameSegment, JavaClassNameSimple, JavaIdentifier,
+                JavaIdentifierLower, JavaMethodName, JavaPackage, JavaPackageSegment,
+                JavaStacktrace, JavaStacktraceFrame, JavaStacktraceHeader,
+                JavaStacktraceHeaderException, JavaStacktraceHeaderMessage,
+                JavaStacktraceHeaderThread, JavaThreadName,
+            },
+            LogBlockStacktrace,
         },
-        log::LogBlockStacktrace,
     };
 
     use super::*;

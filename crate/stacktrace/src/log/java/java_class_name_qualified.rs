@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use pest::iterators::Pair;
 
 use crate::{
-    java::{JavaClassNameSimple, JavaPackage},
+    log::java::{JavaClassNameSimple, JavaPackage},
     log_parser::Rule,
 };
 
@@ -67,7 +67,7 @@ mod tests {
     use pest::Parser;
 
     use crate::{
-        java::{
+        log::java::{
             JavaClassNameQualified, JavaClassNameSegment, JavaClassNameSimple, JavaIdentifierLower,
             JavaPackage, JavaPackageSegment,
         },

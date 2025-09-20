@@ -1,6 +1,6 @@
 use pest::iterators::Pair;
 
-use crate::{java::JavaStacktrace, log_parser::Rule};
+use crate::{log::java::JavaStacktrace, log_parser::Rule};
 
 /// A parsed stacktrace.
 #[derive(Clone, Debug, PartialEq, Eq)]
