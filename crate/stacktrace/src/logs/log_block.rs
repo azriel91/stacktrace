@@ -2,7 +2,10 @@ use std::borrow::Cow;
 
 use pest::iterators::Pair;
 
-use crate::{logs_parser::Rule, LogBlockNormal, LogBlockStacktrace};
+use crate::{
+    logs::{LogBlockNormal, LogBlockStacktrace},
+    logs_parser::Rule,
+};
 
 /// A block in the log file.
 #[derive(Clone, Debug, PartialEq, Eq)]

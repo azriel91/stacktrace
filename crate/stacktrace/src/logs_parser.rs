@@ -1,7 +1,7 @@
 use pest::{iterators::Pair, Parser};
 use pest_derive::Parser;
 
-use crate::{LogBlock, Logs};
+use crate::logs::{LogBlock, Logs};
 
 /// Parser for [`Logs`].
 #[derive(Parser)]
@@ -47,7 +47,7 @@ mod tests {
             JavaStacktraceFrame, JavaStacktraceHeader, JavaStacktraceHeaderException,
             JavaStacktraceHeaderMessage, JavaStacktraceHeaderThread, JavaThreadName,
         },
-        LogBlockStacktrace,
+        logs::LogBlockStacktrace,
     };
 
     use super::*;
