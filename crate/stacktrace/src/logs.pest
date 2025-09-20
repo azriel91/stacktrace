@@ -19,14 +19,14 @@ WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
 /// Root rule of the grammar.
 ///
 /// `SOI` is the start of input, `EOI` is the end of input.
-Logs     = { SOI ~ LogBlock* ~ EOI }
-LogBlock = { LogBlockStacktrace | LogBlockNormal }
+Log      = { SOI ~ LogEntry* ~ EOI }
+LogEntry = { LogEntryStacktrace | LogEntryNormal }
 
 /// Any other message not matched by the parser.
 ///
 /// `!` is the negation operator: <https://pest.rs/book/grammars/syntax.html#predicates>.
-LogBlockNormal     = ${ ANY_NOT_NEWLINE* ~ NEWLINE }
-LogBlockStacktrace =  { JavaStacktrace }
+LogEntryNormal     = ${ ANY_NOT_NEWLINE* ~ NEWLINE }
+LogEntryStacktrace =  { JavaStacktrace }
 
 /// Reference to the source file.
 FilePathAndLine = { FilePath ~ ":" ~ LineNumber }

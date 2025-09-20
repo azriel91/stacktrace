@@ -1,7 +1,7 @@
 use pest::{iterators::Pair, Parser};
 use pest_derive::Parser;
 
-use crate::log::{Log, LogBlock};
+use crate::log::{Log, LogEntry};
 
 /// Parser for [`Logs`].
 #[derive(Parser)]
@@ -13,21 +13,21 @@ const BYTES_PER_LOG_BLOCK_ESTIMATED: usize = 256;
 
 impl LogParser {
     pub fn parse_from_str<'s>(s: &'s str) -> Result<Log<'s>, pest::error::Error<Rule>> {
-        let Some(logs_pair) = Self::parse(Rule::Logs, s)?.next() else {
+        let Some(logs_pair) = Self::parse(Rule::Log, s)?.next() else {
             return Ok(Log::default());
         };
 
         match logs_pair.as_rule() {
-            Rule::Logs => {
-                let log_blocks = logs_pair.into_inner().flat_map(Pair::into_inner).fold(
+            Rule::Log => {
+                let log_entries = logs_pair.into_inner().flat_map(Pair::into_inner).fold(
                     Vec::with_capacity(s.len() / BYTES_PER_LOG_BLOCK_ESTIMATED),
-                    |mut log_blocks, log_block_pair| {
-                        let log_block = LogBlock::from(log_block_pair);
-                        log_blocks.push(log_block);
-                        log_blocks
+                    |mut log_entries, log_entry_pair| {
+                        let log_entry = LogEntry::from(log_entry_pair);
+                        log_entries.push(log_entry);
+                        log_entries
                     },
                 );
-                Ok(Log { log_blocks })
+                Ok(Log { log_entries })
             }
             Rule::EOI => Ok(Log::default()),
             _ => unreachable!(),
@@ -49,7 +49,7 @@ mod tests {
                 JavaStacktraceHeaderException, JavaStacktraceHeaderMessage,
                 JavaStacktraceHeaderThread, JavaThreadName,
             },
-            LogBlockStacktrace,
+            LogEntryStacktrace,
         },
     };
 
@@ -61,7 +61,7 @@ mod tests {
         let s = "log1\nlog2\nlog3";
         match LogParser::parse_from_str(s) {
             Ok(logs) => {
-                assert_eq!(logs.log_blocks.len(), 3);
+                assert_eq!(logs.log_entries.len(), 3);
             }
             Err(e) => {
                 eprintln!("Failed to parse logs: {}", e);
@@ -75,7 +75,7 @@ mod tests {
         let s = "log1\nlog2\nlog3\n";
         match LogParser::parse_from_str(s) {
             Ok(logs) => {
-                assert_eq!(logs.log_blocks.len(), 3);
+                assert_eq!(logs.log_entries.len(), 3);
             }
             Err(e) => {
                 eprintln!("Failed to parse logs: {}", e);
@@ -92,8 +92,8 @@ mod tests {
 "#;
         match LogParser::parse_from_str(s) {
             Ok(logs) => {
-                let log_block_stacktrace = LogBlockStacktrace::JavaStack(JavaStacktrace {
-                    header: Some(JavaStacktraceHeader {
+                let log_block_stacktrace = LogEntryStacktrace::JavaStack(JavaStacktrace {
+                    header: JavaStacktraceHeader {
                         full_text: Cow::Borrowed(
                             "Exception in thread \"main\" java.lang.IllegalArgumentException: foo",
                         ),
@@ -134,7 +134,7 @@ mod tests {
                         message: JavaStacktraceHeaderMessage {
                             text: Cow::Borrowed("foo"),
                         },
-                    }),
+                    },
                     frames: vec![
                         JavaStacktraceFrame {
                             full_text: Cow::Borrowed(
@@ -233,7 +233,7 @@ mod tests {
                 });
                 assert_eq!(
                     Log {
-                        log_blocks: vec![LogBlock::Stacktrace(log_block_stacktrace)]
+                        log_entries: vec![LogEntry::Stacktrace(log_block_stacktrace)]
                     },
                     logs
                 );

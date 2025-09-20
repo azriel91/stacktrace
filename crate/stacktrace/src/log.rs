@@ -1,18 +1,18 @@
 pub use self::{
-    log_block::LogBlock, log_block_normal::LogBlockNormal, log_block_stacktrace::LogBlockStacktrace,
+    log_entry::LogEntry, log_entry_normal::LogEntryNormal, log_entry_stacktrace::LogEntryStacktrace,
 };
 
 pub mod java;
 
-mod log_block;
-mod log_block_normal;
-mod log_block_stacktrace;
+mod log_entry;
+mod log_entry_normal;
+mod log_entry_stacktrace;
 
 /// Plain text logs parsed into log blocks.
 ///
 /// No semantic grouping or analysis has been done yet.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Log<'s> {
-    /// Each of the parsed log blocks in the log.
-    pub log_blocks: Vec<LogBlock<'s>>,
+    /// Each of the parsed log entries in the log.
+    pub log_entries: Vec<LogEntry<'s>>,
 }
