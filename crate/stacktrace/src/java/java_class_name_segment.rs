@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use pest::iterators::Pair;
 
-use crate::logs_parser::Rule;
+use crate::log_parser::Rule;
 
 /// One class name segment, e.g. `Example`, `Exception`, or `$0` in
 /// `com.example.stacktrace.Example$Exception$0`.

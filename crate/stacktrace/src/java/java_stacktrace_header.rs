@@ -6,7 +6,7 @@ use crate::{
     java::{
         JavaStacktraceHeaderException, JavaStacktraceHeaderMessage, JavaStacktraceHeaderThread,
     },
-    logs_parser::Rule,
+    log_parser::Rule,
 };
 
 /// The first line of a Java stacktrace.
@@ -104,7 +104,7 @@ mod tests {
             JavaPackage, JavaPackageSegment, JavaStacktraceHeader, JavaStacktraceHeaderException,
             JavaStacktraceHeaderMessage, JavaStacktraceHeaderThread, JavaThreadName,
         },
-        logs_parser::Rule,
+        log_parser::Rule,
         LogParser,
     };
 

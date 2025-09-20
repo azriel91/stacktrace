@@ -5,7 +5,7 @@ use pest::iterators::Pair;
 use crate::{
     file::FilePathAndLine,
     java::{JavaClassNameQualified, JavaMethodName},
-    logs_parser::Rule,
+    log_parser::Rule,
 };
 
 /// The first line of a Java stacktrace.

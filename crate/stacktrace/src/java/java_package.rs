@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use pest::iterators::Pair;
 
-use crate::{java::JavaPackageSegment, logs_parser::Rule};
+use crate::{java::JavaPackageSegment, log_parser::Rule};
 
 /// A qualified Java package, e.g. `com.example.stacktrace`.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -46,7 +46,7 @@ mod tests {
 
     use crate::{
         java::{JavaIdentifierLower, JavaPackage, JavaPackageSegment},
-        logs_parser::Rule,
+        log_parser::Rule,
         LogParser,
     };
 

@@ -1,7 +1,7 @@
 use pest::{iterators::Pair, Parser};
 use pest_derive::Parser;
 
-use crate::logs::{LogBlock, Logs};
+use crate::log::{Log, LogBlock};
 
 /// Parser for [`Logs`].
 #[derive(Parser)]
@@ -12,9 +12,9 @@ pub struct LogParser;
 const BYTES_PER_LOG_BLOCK_ESTIMATED: usize = 256;
 
 impl LogParser {
-    pub fn parse_from_str<'s>(s: &'s str) -> Result<Logs<'s>, pest::error::Error<Rule>> {
+    pub fn parse_from_str<'s>(s: &'s str) -> Result<Log<'s>, pest::error::Error<Rule>> {
         let Some(logs_pair) = Self::parse(Rule::Logs, s)?.next() else {
-            return Ok(Logs::default());
+            return Ok(Log::default());
         };
 
         match logs_pair.as_rule() {
@@ -27,9 +27,9 @@ impl LogParser {
                         log_blocks
                     },
                 );
-                Ok(Logs { log_blocks })
+                Ok(Log { log_blocks })
             }
-            Rule::EOI => Ok(Logs::default()),
+            Rule::EOI => Ok(Log::default()),
             _ => unreachable!(),
         }
     }
@@ -47,7 +47,7 @@ mod tests {
             JavaStacktraceFrame, JavaStacktraceHeader, JavaStacktraceHeaderException,
             JavaStacktraceHeaderMessage, JavaStacktraceHeaderThread, JavaThreadName,
         },
-        logs::LogBlockStacktrace,
+        log::LogBlockStacktrace,
     };
 
     use super::*;
@@ -229,7 +229,7 @@ mod tests {
                     ],
                 });
                 assert_eq!(
-                    Logs {
+                    Log {
                         log_blocks: vec![LogBlock::Stacktrace(log_block_stacktrace)]
                     },
                     logs

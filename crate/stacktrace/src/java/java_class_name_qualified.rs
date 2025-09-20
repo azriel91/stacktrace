@@ -4,7 +4,7 @@ use pest::iterators::Pair;
 
 use crate::{
     java::{JavaClassNameSimple, JavaPackage},
-    logs_parser::Rule,
+    log_parser::Rule,
 };
 
 /// The qualified class name, e.g.
@@ -71,7 +71,7 @@ mod tests {
             JavaClassNameQualified, JavaClassNameSegment, JavaClassNameSimple, JavaIdentifierLower,
             JavaPackage, JavaPackageSegment,
         },
-        logs_parser::Rule,
+        log_parser::Rule,
         LogParser,
     };
 

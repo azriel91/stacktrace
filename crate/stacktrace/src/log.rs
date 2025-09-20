@@ -10,7 +10,7 @@ mod log_block_stacktrace;
 ///
 /// No semantic grouping or analysis has been done yet.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct Logs<'s> {
+pub struct Log<'s> {
     /// Each of the parsed log blocks in the log.
     pub log_blocks: Vec<LogBlock<'s>>,
 }

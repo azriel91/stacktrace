@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use pest::iterators::Pair;
 
-use crate::{java::JavaThreadName, logs_parser::Rule};
+use crate::{java::JavaThreadName, log_parser::Rule};
 
 /// The `Exception in thread ".."` header of a Java stacktrace.
 ///

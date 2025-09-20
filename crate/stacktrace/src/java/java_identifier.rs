@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use pest::iterators::Pair;
 
-use crate::logs_parser::Rule;
+use crate::log_parser::Rule;
 
 /// A Java identifier which must start with a letter or underscore, and
 /// subsequently may contain digits.
@@ -26,7 +26,7 @@ mod tests {
 
     use pest::Parser;
 
-    use crate::{java::JavaIdentifier, logs_parser::Rule, LogParser};
+    use crate::{java::JavaIdentifier, log_parser::Rule, LogParser};
 
     #[test]
     fn parse_java_identifier() {

@@ -3,8 +3,8 @@ use std::borrow::Cow;
 use pest::iterators::Pair;
 
 use crate::{
-    logs::{LogBlockNormal, LogBlockStacktrace},
-    logs_parser::Rule,
+    log::{LogBlockNormal, LogBlockStacktrace},
+    log_parser::Rule,
 };
 
 /// A block in the log file.

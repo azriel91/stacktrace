@@ -1,6 +1,6 @@
 use pest::iterators::Pair;
 
-use crate::{java::JavaIdentifier, logs_parser::Rule};
+use crate::{java::JavaIdentifier, log_parser::Rule};
 
 /// The method name excluding the `()` in a Java stacktrace.
 ///

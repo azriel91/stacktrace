@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use pest::iterators::Pair;
 
-use crate::{file::FilePath, logs_parser::Rule};
+use crate::{file::FilePath, log_parser::Rule};
 
 /// The file path and line number, e.g. `src/main.rs:11`.
 #[derive(Clone, Debug, PartialEq, Eq)]

@@ -2,7 +2,7 @@ use pest::iterators::Pair;
 
 use crate::{
     java::{JavaStacktraceFrame, JavaStacktraceHeader},
-    logs_parser::Rule,
+    log_parser::Rule,
 };
 
 /// A parsed Java stacktrace.

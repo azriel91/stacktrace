@@ -1,11 +1,11 @@
 //! Data types representing a stack trace.
 
-pub use crate::{logs_parser::LogParser, section::Section, stacktrace::Stacktrace};
+pub use crate::{log_parser::LogParser, section::Section, stacktrace::Stacktrace};
 
 pub mod file;
 pub mod java;
-pub mod logs;
+pub mod log;
 
-mod logs_parser;
+mod log_parser;
 mod section;
 mod stacktrace;

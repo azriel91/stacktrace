@@ -1,6 +1,6 @@
 use pest::iterators::Pair;
 
-use crate::{java::JavaClassNameQualified, logs_parser::Rule};
+use crate::{java::JavaClassNameQualified, log_parser::Rule};
 
 /// The exception class name in a stack trace header.
 ///
