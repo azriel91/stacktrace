@@ -34,6 +34,25 @@ pub struct LogBlock<'s> {
 }
 
 impl<'s> LogBlock<'s> {
+    /// Returns a fully owned version of this [`LogBlock`].
+    pub fn into_static(&self) -> LogBlock<'static> {
+        LogBlock {
+            text: Cow::Owned(self.text.clone().into_owned()),
+            line_segments: self
+                .line_segments
+                .iter()
+                .map(LogLineSegment::into_static)
+                .collect(),
+            line_segments_collapsed: self
+                .line_segments_collapsed
+                .iter()
+                .map(LogLineSegment::into_static)
+                .collect(),
+            children: self.children.iter().map(LogBlock::into_static).collect(),
+        }
+    }
+
+    /// Returns a hash of this [`LogBlock`] using the default hasher.
     pub fn hash_with_default_hasher(&self) -> u64 {
         let mut hasher = DefaultHasher::new();
         self.hash(&mut hasher);

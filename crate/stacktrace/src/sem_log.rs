@@ -184,6 +184,15 @@ pub struct SemLog<'s> {
     pub log_blocks: Vec<LogBlock<'s>>,
 }
 
+impl<'s> SemLog<'s> {
+    /// Returns a fully owned version of this [`SemLog`].
+    pub fn into_static(&self) -> SemLog<'static> {
+        let log_blocks = self.log_blocks.iter().map(LogBlock::into_static).collect();
+
+        SemLog { log_blocks }
+    }
+}
+
 impl<'s> From<Log<'s>> for SemLog<'s> {
     fn from(log: Log<'s>) -> Self {
         let Log { log_entries } = log;

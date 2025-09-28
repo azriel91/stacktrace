@@ -17,3 +17,14 @@ pub struct LogLineSegment<'s> {
     /// [`LogBlock`]: crate::sem_log::LogBlock
     pub kind: LogLineSegmentKind,
 }
+
+impl<'s> LogLineSegment<'s> {
+    /// Returns a fully owned version of this [`LogLineSegment`].
+    pub fn into_static(&self) -> LogLineSegment<'static> {
+        LogLineSegment {
+            text: Cow::Owned(self.text.clone().into_owned()),
+            separator: Cow::Owned(self.separator.clone().into_owned()),
+            kind: self.kind,
+        }
+    }
+}
