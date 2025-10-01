@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    log::java::{JavaClassNameQualified, JavaStacktraceFrame},
+    log::java::{JavaClassNameQualified, JavaStacktraceFrame, JavaStacktraceFrameSource},
     sem_log::{LogLineSegment, LogLineSegmentKind},
 };
 
@@ -101,7 +101,7 @@ impl<'s> From<JavaStacktraceFrame<'s>> for LogBlockPartial<'s> {
             dot,
             method_name,
             parenthesis_open,
-            file_path_and_line,
+            frame_source,
             parenthesis_close,
         } = frame;
         let text = full_text;
@@ -129,8 +129,14 @@ impl<'s> From<JavaStacktraceFrame<'s>> for LogBlockPartial<'s> {
                 separator: parenthesis_open,
                 kind: LogLineSegmentKind::Introduced,
             });
+            let text = match frame_source {
+                JavaStacktraceFrameSource::NativeMethod(native_method) => native_method,
+                JavaStacktraceFrameSource::FilePathAndLine(file_path_and_line) => {
+                    file_path_and_line.full_text
+                }
+            };
             line_segments.push(LogLineSegment {
-                text: file_path_and_line.full_text,
+                text,
                 separator: parenthesis_close,
                 kind: LogLineSegmentKind::Introduced,
             });

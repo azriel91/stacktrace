@@ -45,8 +45,8 @@ mod tests {
             java::{
                 JavaClassNameQualified, JavaClassNameSegment, JavaClassNameSimple, JavaIdentifier,
                 JavaIdentifierLower, JavaMethodName, JavaPackage, JavaPackageSegment,
-                JavaStacktrace, JavaStacktraceFrame, JavaStacktraceHeader,
-                JavaStacktraceHeaderException, JavaStacktraceHeaderMessage,
+                JavaStacktrace, JavaStacktraceFrame, JavaStacktraceFrameSource,
+                JavaStacktraceHeader, JavaStacktraceHeaderException, JavaStacktraceHeaderMessage,
                 JavaStacktraceHeaderThread, JavaThreadName,
             },
             LogEntryStacktrace,
@@ -177,13 +177,15 @@ mod tests {
                                 },
                             },
                             parenthesis_open: Cow::Borrowed("("),
-                            file_path_and_line: FilePathAndLine {
-                                full_text: Cow::Borrowed("Example.java:11"),
-                                file_path: FilePath {
-                                    text: Cow::Borrowed("Example.java"),
+                            frame_source: JavaStacktraceFrameSource::FilePathAndLine(
+                                FilePathAndLine {
+                                    full_text: Cow::Borrowed("Example.java:11"),
+                                    file_path: FilePath {
+                                        text: Cow::Borrowed("Example.java"),
+                                    },
+                                    line_number: 11,
                                 },
-                                line_number: 11,
-                            },
+                            ),
                             parenthesis_close: Cow::Borrowed(")"),
                         },
                         JavaStacktraceFrame {
@@ -220,13 +222,15 @@ mod tests {
                                 },
                             },
                             parenthesis_open: Cow::Borrowed("("),
-                            file_path_and_line: FilePathAndLine {
-                                full_text: Cow::Borrowed("Thread.java:750"),
-                                file_path: FilePath {
-                                    text: Cow::Borrowed("Thread.java"),
+                            frame_source: JavaStacktraceFrameSource::FilePathAndLine(
+                                FilePathAndLine {
+                                    full_text: Cow::Borrowed("Thread.java:750"),
+                                    file_path: FilePath {
+                                        text: Cow::Borrowed("Thread.java"),
+                                    },
+                                    line_number: 750,
                                 },
-                                line_number: 750,
-                            },
+                            ),
                             parenthesis_close: Cow::Borrowed(")"),
                         },
                     ],
