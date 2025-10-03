@@ -111,8 +111,8 @@ impl<'s> JavaStacktrace<'s> {
     ///
     /// ---
     ///
-    /// Shall go with the Frame-Line Consistent approach for now.
-    ///
+    /// `32cceea` is the first implementation of the Frame-Line consistent
+    /// approach that looks right.
     ///
     /// # Notes
     ///
@@ -265,7 +265,7 @@ impl<'s> JavaStacktrace<'s> {
                     // The number of segments it has in common with *this* frame's parent determines
                     // whether it is a sibling of this frame (`Ordering::Equal`), or potentially an
                     // ancestor (`Ordering::Less`).
-                    let (log_block_partial, stuff) = match log_block_partial {
+                    let log_block_partial = match log_block_partial {
                         Some(log_block_partial) => {
                             let next_frame_common_segment_count = log_block_partial
                                 .line_segments
@@ -279,24 +279,21 @@ impl<'s> JavaStacktrace<'s> {
                                 next_frame_common_segment_count.cmp(&parent_common_segment_count);
                             match next_frame_common_segment_count_cmp_parent {
                                 // Recurse upward.
+                                //
+                                // Note: The `return` here actually returns out of the function.
                                 Ordering::Less => return Some(log_block_partial),
 
                                 // Sibling, so we continue this level of recursion's loop
-                                Ordering::Equal => (Some(log_block_partial), format!("equal, next_frame_common_segment_count: {next_frame_common_segment_count}, parent_common_segment_count: {parent_common_segment_count}")),
+                                Ordering::Equal => Some(log_block_partial),
 
                                 // unreachable!("inner recursion layer guarantees it is Less |
                                 // Equal.")
-                                Ordering::Greater => (Some(log_block_partial), format!("greater, next_frame_common_segment_count: {next_frame_common_segment_count}, parent_common_segment_count: {parent_common_segment_count}")),
+                                Ordering::Greater => Some(log_block_partial),
                             }
                         }
-                        None => (None, String::from("")),
+                        None => None,
                     };
 
-                    let text = if log_block_partial.is_some() {
-                        Cow::Owned(format!("{text}, common_segment_count: {common_segment_count}, {stuff}, there is log_block_partial"))
-                    } else {
-                        Cow::Owned(format!("{text}, common_segment_count: {common_segment_count}, {stuff}, no log_block_partial"))
-                    };
                     let line_segments_collapsed = {
                         let mut line_segments_collapsed = line_segments.clone();
                         let n = children.len();
