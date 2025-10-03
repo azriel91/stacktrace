@@ -9,7 +9,8 @@ use leptos::{
     hydration::{AutoReload, HydrationScripts},
     prelude::{
         event_target_value, signal, ClassAttribute, Effect, ElementChild, Get, GlobalAttributes,
-        IntoAny, IntoView, LeptosOptions, OnAttribute, PropAttribute, RwSignal, Signal, Write,
+        IntoAny, IntoView, LeptosOptions, Memo, OnAttribute, PropAttribute, RwSignal, Signal,
+        Write,
     },
     view,
 };
@@ -410,10 +411,12 @@ fn HomePage() -> impl IntoView {
     Effect::new(move || {
         let stacktrace_str = stacktrace_str.get();
         match LogParser::parse_from_str(stacktrace_str.as_str())
+            .inspect(|log| leptos::logging::log!("log: {log:#?}"))
             .map(SemLog::from)
             .map(|sem_log| sem_log.into_static())
         {
             Ok(sem_log) => {
+                leptos::logging::log!("sem_log: {sem_log:#?}");
                 *sem_log_set.write() = Some(sem_log);
             }
             Err(e) => {
