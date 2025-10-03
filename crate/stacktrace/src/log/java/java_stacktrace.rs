@@ -52,6 +52,9 @@ impl<'s> JavaStacktrace<'s> {
     /// Adds [`LogBlock`]s to the given vector, nested when [`LogLineSegment`]s
     /// are common with previous frames.
     ///
+    /// The return value is a [`LogBlockPartial`] that may be a sibling to aid
+    /// the recursive logic. If it isn't a sibling, we return upward.
+    ///
     /// ## Nesting
     ///
     /// We need to decide how to structure the nesting. Given the following
@@ -163,6 +166,10 @@ impl<'s> JavaStacktrace<'s> {
                         Some(&line_segments),
                         log_block_partial_iter,
                     );
+
+                    // `log_block_partial` can only be a sibling since there are no parent line
+                    // segments in this branch.
+
                     let log_block = LogBlock {
                         text,
                         line_segments,
@@ -211,7 +218,7 @@ impl<'s> JavaStacktrace<'s> {
                             line_segment.kind == LogLineSegmentKind::CommonWithParent
                         })
                         .count();
-                    let log_block_common_segment_count = parent_line_segments
+                    let common_segment_count = line_segments
                         .iter()
                         .filter(|line_segment| {
                             line_segment.kind == LogLineSegmentKind::CommonWithParent
@@ -220,9 +227,19 @@ impl<'s> JavaStacktrace<'s> {
 
                     // we could count the number of `Introduced` segments for this log block, but
                     // we'll assume there's at least one.
-                    match log_block_common_segment_count.cmp(&parent_common_segment_count) {
+
+                    // When this frame is a child of the parent, then the next frame may be a
+                    // sibling or ancestor.
+                    let common_segment_count_cmp_parent =
+                        common_segment_count.cmp(&parent_common_segment_count);
+                    match common_segment_count_cmp_parent {
                         Ordering::Less | Ordering::Equal => {
                             // Return because this should not be a child of the current parent.
+                            //
+                            // * If this is `Ordering::Equal`, the returned `LogBlockPartial` is a
+                            //   sibling of the parent call.
+                            // * If this is `Ordering::Less`, the returned `LogBlockPartial` should
+                            //   be compared again with the parent's parent.
                             let log_block_partial = LogBlockPartial {
                                 text,
                                 line_segments,
@@ -230,17 +247,56 @@ impl<'s> JavaStacktrace<'s> {
                             return Some(log_block_partial);
                         }
                         Ordering::Greater => {}
-                    }
+                    };
 
                     // This `log_block` is a child of the current parent, and should be added to
                     // `log_block`s.
                     let mut children = Vec::new();
+
+                    // Recurse in case the next frame is a child.
                     let log_block_partial = Self::log_block_partials_into_log_blocks(
                         &mut children,
                         Some(&line_segments),
                         log_block_partial_iter,
                     );
 
+                    // If `log_block_partial` is `Some`, it means the next frame was not a child.
+                    //
+                    // The number of segments it has in common with *this* frame's parent determines
+                    // whether it is a sibling of this frame (`Ordering::Equal`), or potentially an
+                    // ancestor (`Ordering::Less`).
+                    let (log_block_partial, stuff) = match log_block_partial {
+                        Some(log_block_partial) => {
+                            let next_frame_common_segment_count = log_block_partial
+                                .line_segments
+                                .iter()
+                                .filter(|line_segment| {
+                                    line_segment.kind == LogLineSegmentKind::CommonWithParent
+                                })
+                                .count();
+
+                            let next_frame_common_segment_count_cmp_parent =
+                                next_frame_common_segment_count.cmp(&parent_common_segment_count);
+                            match next_frame_common_segment_count_cmp_parent {
+                                // Recurse upward.
+                                Ordering::Less => return Some(log_block_partial),
+
+                                // Sibling, so we continue this level of recursion's loop
+                                Ordering::Equal => (Some(log_block_partial), format!("equal, next_frame_common_segment_count: {next_frame_common_segment_count}, parent_common_segment_count: {parent_common_segment_count}")),
+
+                                // unreachable!("inner recursion layer guarantees it is Less |
+                                // Equal.")
+                                Ordering::Greater => (Some(log_block_partial), format!("greater, next_frame_common_segment_count: {next_frame_common_segment_count}, parent_common_segment_count: {parent_common_segment_count}")),
+                            }
+                        }
+                        None => (None, String::from("")),
+                    };
+
+                    let text = if log_block_partial.is_some() {
+                        Cow::Owned(format!("{text}, common_segment_count: {common_segment_count}, {stuff}, there is log_block_partial"))
+                    } else {
+                        Cow::Owned(format!("{text}, common_segment_count: {common_segment_count}, {stuff}, no log_block_partial"))
+                    };
                     let line_segments_collapsed = {
                         let mut line_segments_collapsed = line_segments.clone();
                         let n = children.len();

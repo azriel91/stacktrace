@@ -1,4 +1,7 @@
-use std::borrow::Cow;
+use std::{
+    borrow::Cow,
+    hash::{DefaultHasher, Hash, Hasher},
+};
 
 use crate::sem_log::LogLineSegmentKind;
 
@@ -26,5 +29,12 @@ impl<'s> LogLineSegment<'s> {
             separator: Cow::Owned(self.separator.clone().into_owned()),
             kind: self.kind,
         }
+    }
+
+    /// Returns a hash of this [`LogBlock`] using the default hasher.
+    pub fn hash_with_default_hasher(&self) -> u64 {
+        let mut hasher = DefaultHasher::new();
+        self.hash(&mut hasher);
+        hasher.finish()
     }
 }
