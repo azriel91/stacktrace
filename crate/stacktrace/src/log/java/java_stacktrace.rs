@@ -158,7 +158,6 @@ impl<'s> JavaStacktrace<'s> {
             // The block that should be a child of the parent block, and maybe a sibling.
             let (log_block, log_block_partial_sibling_opt) = match parent_line_segments {
                 None => {
-                    let line_segments_collapsed = line_segments.clone();
                     // Recurse, because the next `LogBlockPartial` might be a child of this one.
                     let mut children = Vec::new();
                     let log_block_partial = Self::log_block_partials_into_log_blocks(
@@ -169,6 +168,9 @@ impl<'s> JavaStacktrace<'s> {
 
                     // `log_block_partial` can only be a sibling since there are no parent line
                     // segments in this branch.
+
+                    let line_segments_collapsed =
+                        line_segments_collapsed_compute(&line_segments, &children);
 
                     let log_block = LogBlock {
                         text,
@@ -294,16 +296,8 @@ impl<'s> JavaStacktrace<'s> {
                         None => None,
                     };
 
-                    let line_segments_collapsed = {
-                        let mut line_segments_collapsed = line_segments.clone();
-                        let n = children.len();
-                        line_segments_collapsed.push(LogLineSegment {
-                            text: Cow::Owned(format!("{n} more")),
-                            separator: Cow::Borrowed(""),
-                            kind: LogLineSegmentKind::CollapsedBlockPlaceholder,
-                        });
-                        line_segments_collapsed
-                    };
+                    let line_segments_collapsed =
+                        line_segments_collapsed_compute(&line_segments, &children);
                     let log_block = LogBlock {
                         text,
                         line_segments,
@@ -391,6 +385,26 @@ impl<'s> JavaStacktrace<'s> {
             }
         }
     }
+}
+
+fn line_segments_collapsed_compute<'f, 's>(
+    line_segments: &'f [LogLineSegment<'s>],
+    children: &'f [LogBlock<'s>],
+) -> Vec<LogLineSegment<'s>> {
+    let mut line_segments_collapsed = Vec::with_capacity(line_segments.len());
+
+    // TODO: remove the segments that are not in common with any child.
+    // i.e. find the min of all immediate children's line segments that are
+    // `CommonWithParent`
+    line_segments_collapsed.extend_from_slice(line_segments);
+
+    let n = children.len();
+    line_segments_collapsed.push(LogLineSegment {
+        text: Cow::Owned(format!("{n} more")),
+        separator: Cow::Borrowed(""),
+        kind: LogLineSegmentKind::CollapsedBlockPlaceholder,
+    });
+    line_segments_collapsed
 }
 
 impl<'s> From<Pair<'s, Rule>> for JavaStacktrace<'s> {

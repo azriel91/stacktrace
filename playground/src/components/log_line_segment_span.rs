@@ -12,7 +12,7 @@ pub fn LogLineSegmentSpan(line_segment: LogLineSegment<'static>) -> impl IntoVie
         LogLineSegmentKind::CommonWithParent => "opacity-25",
         LogLineSegmentKind::Introduced => "",
         LogLineSegmentKind::CollapsedBlockPlaceholder => {
-            "border border-yellow-400 bg-yellow-300 rounded"
+            "border border-yellow-800 bg-yellow-700 rounded px-1 ml-2"
         }
     };
     view! {

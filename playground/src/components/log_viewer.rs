@@ -1,6 +1,6 @@
 use leptos::{
     component,
-    prelude::{ClassAttribute, ElementChild, For, Get, ReadSignal},
+    prelude::{ClassAttribute, ElementChild, For, Get, Signal},
     view, IntoView,
 };
 use stacktrace::sem_log::{LogBlock, SemLog};
@@ -30,7 +30,7 @@ const LOG_VIEWER_PLACEHOLDER_CLASSES: &str = "\
 ";
 
 #[component]
-pub fn LogViewer(sem_log: ReadSignal<Option<SemLog<'static>>>) -> impl IntoView {
+pub fn LogViewer(sem_log: Signal<Option<SemLog<'static>>>) -> impl IntoView {
     let placeholder_classes = move || match sem_log.get() {
         Some(sem_log) if sem_log.log_blocks.is_empty() => LOG_VIEWER_PLACEHOLDER_CLASSES,
         _ => "hidden",

@@ -1,0 +1,8 @@
+/* Remove arrow from `<details>` element. */
+summary {
+    list-style: none;
+}
+/* Safari compatibility */
+summary::-webkit-details-marker {
+    display: none;
+}

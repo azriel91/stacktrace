@@ -8,13 +8,12 @@ use leptos::{
     control_flow::For,
     hydration::{AutoReload, HydrationScripts},
     prelude::{
-        event_target_value, signal, ClassAttribute, Effect, ElementChild, Get, GlobalAttributes,
-        IntoAny, IntoView, LeptosOptions, Memo, OnAttribute, PropAttribute, RwSignal, Signal,
-        Write,
+        event_target_value, signal, ClassAttribute, ElementChild, Get, GlobalAttributes, IntoAny,
+        IntoView, LeptosOptions, Memo, OnAttribute, PropAttribute, RwSignal, Signal, Write,
     },
     view,
 };
-use leptos_meta::{provide_meta_context, MetaTags, Stylesheet, Title};
+use leptos_meta::{provide_meta_context, MetaTags, Title};
 use leptos_router::{
     components::{Route, Router, Routes, RoutingProgress, A},
     StaticSegment,
@@ -372,7 +371,7 @@ pub fn App() -> impl IntoView {
     view! {
         // injects a stylesheet into the document <head>
         // id=leptos means cargo-leptos will hot-reload this stylesheet
-        <Stylesheet id="leptos" href="/pkg/stacktrace.css"/>
+        // <Stylesheet id="leptos" href="/pkg/stacktrace.css"/>
 
         // sets the document title
         <Title text="stacktrace • azriel.im"/>
@@ -407,24 +406,13 @@ fn HomePage() -> impl IntoView {
     let stacktrace_str = RwSignal::new(String::new());
     let stacktrace_on_input = move |ev| *stacktrace_str.write() = event_target_value(&ev);
     let stacktrace = Signal::derive(move || Stacktrace::from(stacktrace_str.get().as_str()));
-    let (sem_log, sem_log_set) = leptos::reactive::signal::signal(Option::<SemLog>::None);
-    Effect::new(move || {
+    let sem_log_result = Memo::new(move |_previous| {
         let stacktrace_str = stacktrace_str.get();
-        match LogParser::parse_from_str(stacktrace_str.as_str())
-            .inspect(|log| leptos::logging::log!("log: {log:#?}"))
+        LogParser::parse_from_str(stacktrace_str.as_str())
             .map(SemLog::from)
             .map(|sem_log| sem_log.into_static())
-        {
-            Ok(sem_log) => {
-                leptos::logging::log!("sem_log: {sem_log:#?}");
-                *sem_log_set.write() = Some(sem_log);
-            }
-            Err(e) => {
-                *sem_log_set.write() = None;
-                // parse error
-            }
-        }
     });
+    let sem_log = Signal::derive(move || sem_log_result.get().ok());
 
     view! {
         <div class=HOMEPAGE_CLASSES>
@@ -438,8 +426,8 @@ fn HomePage() -> impl IntoView {
                 }
             />
 
-            <StacktraceDiv stacktrace />
             <LogViewer sem_log />
+            <StacktraceDiv stacktrace />
         </div>
     }
 }
