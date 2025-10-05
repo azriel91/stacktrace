@@ -20,12 +20,14 @@ impl<'s> IntoLogBlock<'s> for LogEntryNormal<'s> {
         }];
         let line_segments_collapsed = line_segments.clone();
         let children = Vec::new();
+        let children_collapsed_text = Cow::Borrowed("");
 
         LogBlock {
             text,
             line_segments,
             line_segments_collapsed,
             children,
+            children_collapsed_text,
         }
     }
 }

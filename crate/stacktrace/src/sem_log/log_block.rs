@@ -31,6 +31,9 @@ pub struct LogBlock<'s> {
 
     /// Children of this block.
     pub children: Vec<LogBlock<'s>>,
+
+    /// Context to display when the children are collapsed.
+    pub children_collapsed_text: Cow<'s, str>,
 }
 
 impl<'s> LogBlock<'s> {
@@ -49,6 +52,7 @@ impl<'s> LogBlock<'s> {
                 .map(LogLineSegment::into_static)
                 .collect(),
             children: self.children.iter().map(LogBlock::into_static).collect(),
+            children_collapsed_text: Cow::Owned(self.children_collapsed_text.clone().into_owned()),
         }
     }
 

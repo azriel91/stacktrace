@@ -169,7 +169,7 @@ impl<'s> JavaStacktrace<'s> {
                     // `log_block_partial` can only be a sibling since there are no parent line
                     // segments in this branch.
 
-                    let line_segments_collapsed =
+                    let (line_segments_collapsed, children_collapsed_text) =
                         line_segments_collapsed_compute(&line_segments, &children);
 
                     let log_block = LogBlock {
@@ -177,6 +177,7 @@ impl<'s> JavaStacktrace<'s> {
                         line_segments,
                         line_segments_collapsed,
                         children,
+                        children_collapsed_text,
                     };
                     (log_block, log_block_partial)
                 }
@@ -296,13 +297,14 @@ impl<'s> JavaStacktrace<'s> {
                         None => None,
                     };
 
-                    let line_segments_collapsed =
+                    let (line_segments_collapsed, children_collapsed_text) =
                         line_segments_collapsed_compute(&line_segments, &children);
                     let log_block = LogBlock {
                         text,
                         line_segments,
                         line_segments_collapsed,
                         children,
+                        children_collapsed_text,
                     };
                     (log_block, log_block_partial)
                 }
@@ -390,21 +392,43 @@ impl<'s> JavaStacktrace<'s> {
 fn line_segments_collapsed_compute<'f, 's>(
     line_segments: &'f [LogLineSegment<'s>],
     children: &'f [LogBlock<'s>],
-) -> Vec<LogLineSegment<'s>> {
+) -> (Vec<LogLineSegment<'s>>, Cow<'static, str>) {
     let mut line_segments_collapsed = Vec::with_capacity(line_segments.len());
 
-    // TODO: remove the segments that are not in common with any child.
+    // Remove the segments that are not in common with any child.
+    //
     // i.e. find the min of all immediate children's line segments that are
     // `CommonWithParent`
-    line_segments_collapsed.extend_from_slice(line_segments);
-
-    let n = children.len();
+    let line_segments_to_keep_count = children
+        .iter()
+        .map(|log_block| {
+            log_block
+                .line_segments
+                .iter()
+                .take_while(|line_segment| line_segment.kind != LogLineSegmentKind::Introduced)
+                .count()
+        })
+        .min()
+        .unwrap_or(line_segments.len());
+    line_segments_collapsed.extend_from_slice(&line_segments[0..line_segments_to_keep_count]);
     line_segments_collapsed.push(LogLineSegment {
-        text: Cow::Owned(format!("{n} more")),
+        text: Cow::Borrowed("…"),
         separator: Cow::Borrowed(""),
         kind: LogLineSegmentKind::CollapsedBlockPlaceholder,
     });
-    line_segments_collapsed
+
+    let n = descendent_count(children.iter()) + 1; // + 1 to include the current frame.
+    let children_collapsed_text = Cow::Owned(format!("{n} frames"));
+    (line_segments_collapsed, children_collapsed_text)
+}
+
+fn descendent_count<'f, 's: 'f>(
+    log_block_iter: impl ExactSizeIterator<Item = &'f LogBlock<'s>>,
+) -> usize {
+    let len = log_block_iter.len();
+    log_block_iter.fold(len, |acc, log_block| {
+        acc + descendent_count(log_block.children.iter())
+    })
 }
 
 impl<'s> From<Pair<'s, Rule>> for JavaStacktrace<'s> {
@@ -442,30 +466,22 @@ impl<'s> From<Pair<'s, Rule>> for JavaStacktrace<'s> {
 impl<'s> IntoLogBlock<'s> for JavaStacktrace<'s> {
     fn into_log_block(self) -> LogBlock<'s> {
         let JavaStacktrace { header, frames } = self;
+        let frame_count = frames.len();
         let line_segments = vec![LogLineSegment {
             text: header.full_text.clone(),
             separator: Cow::Borrowed(""),
             kind: LogLineSegmentKind::Introduced,
         }];
         let children = Self::frames_into_log_blocks(frames);
-        let children_count = children.len();
-        let line_segments_collapsed = vec![
-            LogLineSegment {
-                text: header.full_text.clone(),
-                separator: Cow::Borrowed(""),
-                kind: LogLineSegmentKind::Introduced,
-            },
-            LogLineSegment {
-                text: Cow::Owned(format!("{children_count} more")),
-                separator: Cow::Borrowed(""),
-                kind: LogLineSegmentKind::CollapsedBlockPlaceholder,
-            },
-        ];
+        let line_segments_collapsed = line_segments.clone();
+        let children_collapsed_text = Cow::Owned(format!("{frame_count} frames"));
+
         LogBlock {
             text: header.full_text,
             line_segments,
             line_segments_collapsed,
             children,
+            children_collapsed_text,
         }
     }
 }
