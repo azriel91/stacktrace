@@ -1,15 +1,11 @@
-use std::{
-    hash::{DefaultHasher, Hash, Hasher},
-    time::Duration,
-};
+use std::time::Duration;
 
 use leptos::{
     component,
-    control_flow::For,
     hydration::{AutoReload, HydrationScripts},
     prelude::{
-        event_target_value, signal, ClassAttribute, ElementChild, Get, GlobalAttributes, IntoAny,
-        IntoView, LeptosOptions, Memo, OnAttribute, PropAttribute, RwSignal, Signal, Write,
+        event_target_value, signal, ClassAttribute, ElementChild, Get, GlobalAttributes, IntoView,
+        LeptosOptions, Memo, OnAttribute, PropAttribute, RwSignal, Signal, Write,
     },
     view,
 };
@@ -18,7 +14,7 @@ use leptos_router::{
     components::{Route, Router, Routes, RoutingProgress, A},
     StaticSegment,
 };
-use stacktrace::{sem_log::SemLog, LogParser, Section, Stacktrace};
+use stacktrace::{sem_log::SemLog, LogParser};
 
 use crate::components::LogViewer;
 
@@ -289,76 +285,6 @@ const STACKTRACE_SAMPLE_RUST: &str = r#"stack backtrace:
   84: syntax::with_globals
 "#;
 
-const STACKTRACE_DIV_CLASSES: &str = "\
-    bg-slate-700 \
-    text-slate-100 \
-    font-mono \
-    \
-    h-[36rem] \
-    w-full \
-    lg:max-w-7xl \
-    p-4 \
-    rounded-lg \
-    shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.3)] \
-    \
-    overflow-scroll \
-    text-nowrap \
-";
-
-const STACKTRACE_DIV_PLACEHOLDER_CLASSES: &str = "\
-    opacity-75 \
-    italic \
-    select-none \
-";
-
-const SECTION_DIV_CLASSES: &str = "\
-    whitespace-pre \
-";
-
-/// Since `peer-*` modifiers work on sibling components, and the `<input>` is
-/// nested within a `<div>`, we don't need to generate unique peer names for
-/// each `section`.
-///
-/// This also avoids needing to generate CSS based on dynamic class names --
-/// which would've required `encre`.
-const SECTION_DIV_CHECKBOX_CLASSES: &str = "\
-    peer/section \
-    hidden \
-";
-const SECTION_DIV_CHILDREN_CLASSES: &str = "peer-checked/section:hidden";
-
-/// For `bg-arrow`, see `tailwind.config.js`.
-const SECTION_DIV_TRIANGLE_CLASSES: &str = "\
-    w-4 \
-    h-4 \
-    p-1 \
-    align-text-bottom \
-    inline-block \
-    bg-arrow \
-    bg-no-repeat \
-    bg-center \
-    rotate-90 \
-    peer-checked/section:rotate-0 \
-";
-const SECTION_DIV_TRIANGLE_HIDDEN_CLASSES: &str = "\
-    w-4 \
-    h-4 \
-    p-1 \
-    align-text-bottom \
-    inline-block \
-";
-
-const SECTION_DIV_SLICE_CLASSES: &str = "\
-    pl-2.5 \
-    select-text \
-    cursor-text \
-    hover:bg-slate-500 \
-";
-
-const SECTION_DIV_SLICE_COMMON_CLASSES: &str = "\
-    opacity-20 \
-";
-
 #[component]
 pub fn App() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
@@ -403,12 +329,11 @@ pub fn App() -> impl IntoView {
 /// Renders the home page of your application.
 #[component]
 fn HomePage() -> impl IntoView {
-    let stacktrace_str = RwSignal::new(String::new());
-    let stacktrace_on_input = move |ev| *stacktrace_str.write() = event_target_value(&ev);
-    let stacktrace = Signal::derive(move || Stacktrace::from(stacktrace_str.get().as_str()));
+    let log_str = RwSignal::new(String::new());
+    let log_on_input = move |ev| *log_str.write() = event_target_value(&ev);
     let sem_log_result = Memo::new(move |_previous| {
-        let stacktrace_str = stacktrace_str.get();
-        LogParser::parse_from_str(stacktrace_str.as_str())
+        let log_str = log_str.get();
+        LogParser::parse_from_str(log_str.as_str())
             .map(SemLog::from)
             .map(|sem_log| sem_log.into_static())
     });
@@ -416,18 +341,17 @@ fn HomePage() -> impl IntoView {
 
     view! {
         <div class=HOMEPAGE_CLASSES>
-            <StacktraceSamples stacktrace_str />
+            <StacktraceSamples log_str />
             <textarea
                 class=STACKTRACE_TEXT_CLASSES
-                on:input=stacktrace_on_input
+                on:input=log_on_input
                 placeholder=STACKTRACE_TEXT_PLACEHOLDER
                 prop:value={
-                    move || stacktrace_str.get()
+                    move || log_str.get()
                 }
             />
 
             <LogViewer sem_log />
-            <StacktraceDiv stacktrace />
         </div>
     }
 }
@@ -443,9 +367,9 @@ fn RouterFallback() -> impl IntoView {
 }
 
 #[component]
-fn StacktraceSamples(stacktrace_str: RwSignal<String>) -> impl IntoView {
-    let stacktrace_sample_java = move |_| *stacktrace_str.write() = STACKTRACE_SAMPLE_JAVA_1.into();
-    let stacktrace_sample_rust = move |_| *stacktrace_str.write() = STACKTRACE_SAMPLE_RUST.into();
+fn StacktraceSamples(log_str: RwSignal<String>) -> impl IntoView {
+    let stacktrace_sample_java = move |_| *log_str.write() = STACKTRACE_SAMPLE_JAVA_1.into();
+    let stacktrace_sample_rust = move |_| *log_str.write() = STACKTRACE_SAMPLE_RUST.into();
     view! {
         <div class=STACKTRACE_SAMPLES_DIV_CLASSES>
             <span>"Samples:"</span>
@@ -453,86 +377,4 @@ fn StacktraceSamples(stacktrace_str: RwSignal<String>) -> impl IntoView {
             <button on:click=stacktrace_sample_rust type="button">"🦀 Rust"</button>
         </div>
     }
-}
-
-#[component]
-fn StacktraceDiv(stacktrace: Signal<Stacktrace>) -> impl IntoView {
-    let placeholder_classes = move || {
-        if stacktrace.get().sections.is_empty() {
-            STACKTRACE_DIV_PLACEHOLDER_CLASSES
-        } else {
-            "hidden"
-        }
-    };
-    view! {
-        <div class=STACKTRACE_DIV_CLASSES>
-            <span class=placeholder_classes>
-                "Paste a stacktrace into the text box above"
-            </span>
-            <For
-                each=move || stacktrace.get().sections.clone()
-                key=section_hash
-                children=|section: Section| view! { <SectionDiv section /> }
-            />
-        </div>
-    }
-}
-
-#[component]
-fn SectionDiv(section: Section) -> impl IntoView {
-    let section_name = {
-        let section_hash = section_hash(&section);
-        format!("section-{section_hash}")
-    };
-
-    let triangle_classes = if section.child_sections().is_empty() {
-        SECTION_DIV_TRIANGLE_HIDDEN_CLASSES
-    } else {
-        SECTION_DIV_TRIANGLE_CLASSES
-    };
-
-    // The flat structure is important:
-    //
-    // * `<input>` is used as a `peer-checked/section`
-    // * The `label` and inner `div` rely on `<input>` being a sibling element for
-    //   styling.
-    view! {
-        <div class=SECTION_DIV_CLASSES>
-            <input
-                id=section_name.clone()
-                name=section_name.clone()
-                type="checkbox"
-                class=SECTION_DIV_CHECKBOX_CLASSES
-            />
-            <label
-                for=section_name.clone()
-                class=triangle_classes
-            />
-            <label
-                for=section_name
-                class=SECTION_DIV_SLICE_CLASSES
-            >
-                <span class=SECTION_DIV_SLICE_COMMON_CLASSES>
-                    {section.slice_common_with_previous_frames().to_string()}
-                </span>
-                <span>
-                    {section.slice_remainder().to_string()}
-                </span>
-            </label>
-            <div class=SECTION_DIV_CHILDREN_CLASSES>
-                <For
-                    each=move || section.child_sections.clone()
-                    key=section_hash
-                    children=|child_section: Section| view! { <SectionDiv section=child_section /> }
-                />
-            </div>
-        </div>
-    }
-    .into_any()
-}
-
-fn section_hash(section: &Section) -> u64 {
-    let mut hasher = DefaultHasher::new();
-    section.hash(&mut hasher);
-    hasher.finish()
 }
