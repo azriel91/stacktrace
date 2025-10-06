@@ -9,6 +9,9 @@ use crate::{
 };
 
 /// A entry in the log file.
+// `LogEntryStacktrace` is much larger than `LogEntryNormal`, but we expect `LogEntryNormal` to be
+// of similar size once we parse timestamps.
+#[allow(clippy::large_enum_variant)]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum LogEntry<'s> {
     /// A stacktrace entry.

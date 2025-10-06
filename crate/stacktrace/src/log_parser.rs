@@ -12,7 +12,7 @@ pub struct LogParser;
 const BYTES_PER_LOG_BLOCK_ESTIMATED: usize = 256;
 
 impl LogParser {
-    pub fn parse_from_str<'s>(s: &'s str) -> Result<Log<'s>, pest::error::Error<Rule>> {
+    pub fn parse_from_str<'s>(s: &'s str) -> Result<Log<'s>, Box<pest::error::Error<Rule>>> {
         let Some(logs_pair) = Self::parse(Rule::Log, s)?.next() else {
             return Ok(Log::default());
         };

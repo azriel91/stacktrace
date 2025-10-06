@@ -8,7 +8,7 @@ use stacktrace::sem_log::LogBlock;
 
 use crate::components::LogLineSegmentsDiv;
 
-const LINE_CLASSES: &'static str = "\
+const LINE_CLASSES: &str = "\
     hover:bg-gray-600 \
     py-1 \
     rounded \
@@ -16,7 +16,7 @@ const LINE_CLASSES: &'static str = "\
 
 /// Multiple `hover:open` selectors so that we only highlight the border if
 /// there are no nested [`LogBlockDiv`]s that are also hovered.
-const BLOCK_CLASSES: &'static str = "\
+const BLOCK_CLASSES: &str = "\
     rounded-lg \
     border-s \
     border-transparent \

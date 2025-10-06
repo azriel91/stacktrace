@@ -39,7 +39,7 @@ pub fn LogLineSegmentsDiv(
                         </div>
                     })
                 } else {
-                    Either::Right(view! {})
+                    Either::Right(())
                 }
             }}
         </div>
