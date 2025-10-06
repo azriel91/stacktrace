@@ -29,7 +29,7 @@ pub struct JavaStacktraceFrame<'s> {
     pub at: Cow<'s, str>,
     /// The `Exception in thread ".."` text, if any.
     pub class_name_qualified: JavaClassNameQualified<'s>,
-    /// The `.` separator between the class name ane method name.
+    /// The `.` separator between the class name and method name.
     pub dot: Cow<'s, str>,
     /// The `com.example.stacktrace.Example$Exception` text.
     pub method_name: JavaMethodName<'s>,
