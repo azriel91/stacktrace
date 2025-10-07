@@ -5,6 +5,8 @@
 // modules twice.
 pub mod app;
 
+mod components;
+
 #[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {

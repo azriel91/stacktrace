@@ -24,18 +24,39 @@ unexpected_cfgs = { level = "warn", check-cfg = ['cfg(coverage_nightly)'] }
 stacktrace = { path = "crate/stacktrace", version = "0.1.0" }
 
 # external crates
-axum = "0.7"
+axum = "0.8"
 console_error_panic_hook = "0.1"
 flat_string = "1.0.1"
 http = "1"
-leptos = "0.7.0"
-leptos_axum = "0.7.0"
-leptos_dom = "0.7.0"
-leptos_meta = "0.7.0"
-leptos_router = "0.7.0"
-smallvec = "1.13.2"
-thiserror = "1"
+leptos = "0.8.10"
+leptos_axum = "0.8.6"
+leptos_dom = "0.8.7"
+leptos_meta = "0.8.5"
+leptos_router = "0.8.8"
+pest = "2.8"
+pest_derive = "2.8"
+smallvec = "1.15.1"
+thiserror = "2"
 tokio = "1"
-tower = "0.4"
-tower-http = "0.5"
-wasm-bindgen = "=0.2.99"
+tower = "0.5"
+tower-http = "0.6"
+wasm-bindgen = "=0.2.104"
+
+# Defines a size-optimized profile for the WASM bundle in release mode
+[profile.wasm-release]
+inherits = "release"
+opt-level = 'z'
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[patch.crates-io]
+hydration_context = { git = "https://github.com/azriel91/leptos.git", branch = "feature/4361/support-toggle-event" }
+leptos = { git = "https://github.com/azriel91/leptos.git", branch = "feature/4361/support-toggle-event" }
+leptos_axum = { git = "https://github.com/azriel91/leptos.git", branch = "feature/4361/support-toggle-event" }
+leptos_dom = { git = "https://github.com/azriel91/leptos.git", branch = "feature/4361/support-toggle-event" }
+leptos_meta = { git = "https://github.com/azriel91/leptos.git", branch = "feature/4361/support-toggle-event" }
+leptos_router = { git = "https://github.com/azriel91/leptos.git", branch = "feature/4361/support-toggle-event" }
+leptos_integration_utils = { git = "https://github.com/azriel91/leptos.git", branch = "feature/4361/support-toggle-event" }
+reactive_graph = { git = "https://github.com/azriel91/leptos.git", branch = "feature/4361/support-toggle-event" }
+tachys = { git = "https://github.com/azriel91/leptos.git", branch = "feature/4361/support-toggle-event" }

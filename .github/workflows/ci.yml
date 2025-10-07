@@ -4,7 +4,7 @@ on:
       - main
   pull_request:
     branches:
-      - '**'
+      - "**"
 
 name: CI
 
@@ -15,32 +15,58 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rust-lang/audit@v1
-        name: Audit Rust Dependencies
+      - name: "Generate Cargo.lock"
+        run: cargo generate-lockfile
+
+      - name: cargo-audit cache restore
+        id: cargo-audit_cache_restore
+        uses: actions/cache/restore@v4
         with:
-          denyWarnings: true
-          createIssues: false
+          path: ~/.cargo/bin/cargo-audit
+          key: ${{ runner.os }}-cargo-audit
+
+      - run: cargo install cargo-audit
+        if: steps.cargo-audit_cache_restore.outputs.cache-hit != 'true'
+
+      - name: cargo-audit cache save
+        id: cargo-audit_cache_save
+        uses: actions/cache/save@v4
+        if: always() && steps.cargo-audit_cache_restore.outputs.cache-hit != 'true'
+        with:
+          path: ~/.cargo/bin/cargo-audit
+          key: ${{ runner.os }}-cargo-audit
+
+      - uses: rustsec/audit-check@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   licenses:
     name: Licenses
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: EmbarkStudios/cargo-deny-action@v2
+      - uses: actions/checkout@v4
+      - uses: EmbarkStudios/cargo-deny-action@v2
 
-    - name: cargo-about cache
-      id: cargo-about-cache
-      uses: actions/cache@v4
-      with:
-        path: ~/.cargo/bin/cargo-about
-        key: cargo-about-${{ runner.os }}
+      - name: cargo-about cache restore
+        id: cargo_about_cache_restore
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cargo/bin/cargo-about
+          key: ${{ runner.os }}-cargo-about
 
-    - name: cargo-about install
-      if: steps.cargo-about-cache.outputs.cache-hit != 'true'
-      run: cargo install --locked cargo-about
+      - run: cargo install --locked cargo-about
+        if: steps.cargo_about_cache_restore.outputs.cache-hit != 'true'
 
-    - name: cargo-about generate licenses
-      run: cargo about generate --workspace about.hbs > doc/src/licenses.html
+      - name: cargo-about cache save
+        id: cargo_about_cache_save
+        uses: actions/cache/save@v4
+        if: always() && steps.cargo_about_cache_restore.outputs.cache-hit != 'true'
+        with:
+          path: ~/.cargo/bin/cargo-about
+          key: ${{ runner.os }}-cargo-about
+
+      - name: cargo-about generate licenses
+        run: cargo about generate --workspace about.hbs > doc/src/licenses.html
 
   fmt:
     name: Rustfmt
@@ -82,7 +108,7 @@ jobs:
           toolchain: nightly
           components: clippy
 
-      - name: 'Run clippy (client side graphviz)'
+      - name: "Run clippy (client side graphviz)"
         run: |
           cargo clippy --workspace -- -D warnings
 
@@ -94,33 +120,42 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
 
-      - name: 'Build and test'
+      - name: "Build and test"
         run: cargo test --workspace
 
   build_playground_linux_cargo_leptos:
     name: Build Playground (Linux, cargo-leptos)
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      RUST_BACKTRACE: 1
     steps:
       - uses: actions/checkout@v4
-      - name: 'Install Rust'
+      - name: "Install Rust"
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
           targets: wasm32-unknown-unknown
 
-      - name: cargo-leptos cache
-        id: cargo-leptos-cache
-        uses: actions/cache@v4
+      - name: cargo-leptos cache restore
+        id: cargo_leptos_cache_restore
+        uses: actions/cache/restore@v4
         with:
           path: ~/.cargo/bin/cargo-leptos
-          key: cargo-leptos-${{ runner.os }}
+          key: ${{ runner.os }}-cargo-leptos
 
-      - name: cargo-leptos install
-        if: steps.cargo-leptos-cache.outputs.cache-hit != 'true'
-        run: cargo install cargo-leptos
+      - run: cargo install cargo-leptos
+        if: steps.cargo_leptos_cache_restore.outputs.cache-hit != 'true'
 
-      - name: 'Build playground'
+      - name: cargo-leptos cache save
+        id: cargo_leptos_cache_save
+        uses: actions/cache/save@v4
+        if: always() && steps.cargo_leptos_cache_restore.outputs.cache-hit != 'true'
+        with:
+          path: ~/.cargo/bin/cargo-leptos
+          key: ${{ runner.os }}-cargo-leptos
+
+      - name: "Build playground"
         working-directory: ./playground
         run: cargo leptos build -v
 
@@ -130,24 +165,31 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: 'Install Rust'
+      - name: "Install Rust"
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
           targets: wasm32-unknown-unknown
 
-      - name: trunkrs cache
-        id: trunkrs-cache
-        uses: actions/cache@v4
+      - name: trunk cache restore
+        id: trunk_cache_restore
+        uses: actions/cache/restore@v4
         with:
           path: ~/.cargo/bin/trunk
-          key: trunk-${{ runner.os }}
+          key: ${{ runner.os }}-trunk
 
-      - name: trunk install
-        if: steps.trunkrs-cache.outputs.cache-hit != 'true'
-        run: cargo install --locked trunk
+      - run: cargo install trunk
+        if: steps.trunk_cache_restore.outputs.cache-hit != 'true'
 
-      - name: 'Build playground'
+      - name: trunk cache save
+        id: trunk_cache_save
+        uses: actions/cache/save@v4
+        if: always() && steps.trunk_cache_restore.outputs.cache-hit != 'true'
+        with:
+          path: ~/.cargo/bin/trunk
+          key: ${{ runner.os }}-trunk
+
+      - name: "Build playground"
         working-directory: ./playground
         run: trunk build -v
 
@@ -162,37 +204,42 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
 
-      - name: 'Build and test'
+      - name: "Build and test"
         run: cargo test --workspace
 
   build_playground_windows:
     name: Build Playground (Windows, cargo-leptos)
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 45 # cargo-leptos can take a while to compile
     steps:
       - name: Prepare symlink configuration
         run: git config --global core.symlinks true
 
       - uses: actions/checkout@v4
-      - name: 'Install Rust'
+      - name: "Install Rust"
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: stable
           targets: wasm32-unknown-unknown
 
-      - name: cargo-leptos cache
-        id: cargo-leptos-cache
-        uses: actions/cache@v4
+      - name: cargo-leptos cache restore
+        id: cargo_leptos_cache_restore
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cargo/bin/cargo-leptos
+          key: ${{ runner.os }}-cargo-leptos
+
+      - run: cargo install cargo-leptos
+        if: steps.cargo_leptos_cache_restore.outputs.cache-hit != 'true'
+
+      - name: cargo-leptos cache save
+        id: cargo_leptos_cache_save
+        uses: actions/cache/save@v4
+        if: always() && steps.cargo_leptos_cache_restore.outputs.cache-hit != 'true'
         with:
           path: 'C:\Users\runneradmin\.cargo\bin\cargo-leptos.exe'
-          key: cargo-leptos-${{ runner.os }}
+          key: ${{ runner.os }}-cargo-leptos
 
-      - name: cargo-leptos install
-        if: steps.cargo-leptos-cache.outputs.cache-hit != 'true'
-        # --locked: fix is in-progress at https://github.com/leptos-rs/cargo-leptos/pull/274
-        run: |-
-          cargo install cargo-leptos --locked
-
-      - name: 'Build playground'
+      - name: "Build playground"
         working-directory: ./playground
         run: cargo leptos build -v

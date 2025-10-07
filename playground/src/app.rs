@@ -1,24 +1,22 @@
-use std::{
-    hash::{DefaultHasher, Hash, Hasher},
-    time::Duration,
-};
+use std::time::Duration;
 
 use leptos::{
     component,
-    control_flow::For,
     hydration::{AutoReload, HydrationScripts},
     prelude::{
-        event_target_value, signal, ClassAttribute, ElementChild, Get, GlobalAttributes, IntoAny,
-        IntoView, LeptosOptions, OnAttribute, PropAttribute, RwSignal, Signal, Write,
+        event_target_value, signal, ClassAttribute, ElementChild, Get, GlobalAttributes, IntoView,
+        LeptosOptions, Memo, OnAttribute, PropAttribute, RwSignal, Signal, Write,
     },
     view,
 };
-use leptos_meta::{provide_meta_context, MetaTags, Stylesheet, Title};
+use leptos_meta::{provide_meta_context, MetaTags, Title};
 use leptos_router::{
     components::{Route, Router, Routes, RoutingProgress, A},
     StaticSegment,
 };
-use stacktrace::{Section, Stacktrace};
+use stacktrace::{sem_log::SemLog, LogParser};
+
+use crate::components::LogViewer;
 
 pub fn shell(options: LeptosOptions) -> impl IntoView {
     view! {
@@ -112,68 +110,76 @@ const STACKTRACE_SAMPLES_DIV_CLASSES: &str = "\
     lg:max-w-7xl \
 ";
 
-const STACKTRACE_SAMPLE_JAVA: &str = r#"java.lang.IllegalArgumentException: foo
-    com.example.stacktrace.Example.fail(Example.java:11)
-    sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-    sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-    sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-    java.lang.reflect.Method.invoke(Method.java:483)
-    org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:221)
-    org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:136)
-    org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:114)
-    org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:827)
-    org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:738)
-    org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:85)
-    org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:963)
-    org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:897)
-    org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:970)
-    org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:861)
-    javax.servlet.http.HttpServlet.service(HttpServlet.java:622)
-    org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:846)
-    javax.servlet.http.HttpServlet.service(HttpServlet.java:729)
-    org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:52)
-    com.example.stacktrace.servlet.NormalStrategy.doFilter(NormalStrategy.java:42)
-    com.example.stacktrace.servlet.LogbookFilter.doFilter(LogbookFilter.java:33)
-    com.example.stacktrace.servlet.HttpFilter.doFilter(HttpFilter.java:32)
-    org.springframework.boot.actuate.trace.WebRequestTraceFilter.doFilterInternal(WebRequestTraceFilter.java:105)
-    org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
-    org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:317)
-    org.springframework.security.web.access.intercept.FilterSecurityInterceptor.invoke(FilterSecurityInterceptor.java:127)
-    org.springframework.security.web.access.intercept.FilterSecurityInterceptor.doFilter(FilterSecurityInterceptor.java:91)
-    org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:331)
-    org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:115)
-    org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:331)
-    org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:137)
-    org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:331)
-    org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:169)
-    org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:331)
-    org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63)
-    org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:331)
-    org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationProcessingFilter.doFilter(OAuth2AuthenticationProcessingFilter.java:176)
-    org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:331)
-    org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:121)
-    org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:331)
-    org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:66)
-    org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
-    org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:331)
-    org.springframework.security.web.context.SecurityContextPersistenceFilter.doFilter(SecurityContextPersistenceFilter.java:105)
-    org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:331)
-    org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:56)
-    org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
-    org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:331)
-    org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:214)
-    org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:177)
-    org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:346)
-    org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:262)
-    com.example.stacktrace.servlet.SecurityStrategy.doFilter(SecurityStrategy.java:32)
-    com.example.stacktrace.servlet.LogbookFilter.doFilter(LogbookFilter.java:33)
-    com.example.stacktrace.servlet.HttpFilter.doFilter(HttpFilter.java:32)
-    org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:197)
-    org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
-    org.springframework.boot.actuate.autoconfigure.MetricsFilter.doFilterInternal(MetricsFilter.java:107)
-    org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
-    com.example.stacktrace.servlet.TracerFilter.doFilter(TracerFilter.java:33)
-    com.example.stacktrace.servlet.HttpFilter.doFilter(HttpFilter.java:28)
+const STACKTRACE_SAMPLE_JAVA_1: &str = r#"java.lang.IllegalArgumentException: foo
+    at com.example.stacktrace.Example.fail(Example.java:11)
+    at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+    at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+    at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+    at java.lang.reflect.Method.invoke(Method.java:483)
+    at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:221)
+    at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:136)
+    at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:114)
+    at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:827)
+    at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:738)
+    at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:85)
+    at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:963)
+    at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:897)
+    at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:970)
+    at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:861)
+    at javax.servlet.http.HttpServlet.service(HttpServlet.java:622)
+    at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:846)
+    at javax.servlet.http.HttpServlet.service(HttpServlet.java:729)
+    at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:52)
+    at com.example.stacktrace.servlet.NormalStrategy.doFilter(NormalStrategy.java:42)
+    at com.example.stacktrace.servlet.LogbookFilter.doFilter(LogbookFilter.java:33)
+    at com.example.stacktrace.servlet.HttpFilter.doFilter(HttpFilter.java:32)
+    at org.springframework.boot.actuate.trace.WebRequestTraceFilter.doFilterInternal(WebRequestTraceFilter.java:105)
+    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:317)
+    at org.springframework.security.web.access.intercept.FilterSecurityInterceptor.invoke(FilterSecurityInterceptor.java:127)
+    at org.springframework.security.web.access.intercept.FilterSecurityInterceptor.doFilter(FilterSecurityInterceptor.java:91)
+    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:331)
+    at org.springframework.security.web.access.ExceptionTranslationFilter.doFilter(ExceptionTranslationFilter.java:115)
+    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:331)
+    at org.springframework.security.web.session.SessionManagementFilter.doFilter(SessionManagementFilter.java:137)
+    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:331)
+    at org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter.doFilter(SecurityContextHolderAwareRequestFilter.java:169)
+    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:331)
+    at org.springframework.security.web.savedrequest.RequestCacheAwareFilter.doFilter(RequestCacheAwareFilter.java:63)
+    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:331)
+    at org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationProcessingFilter.doFilter(OAuth2AuthenticationProcessingFilter.java:176)
+    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:331)
+    at org.springframework.security.web.authentication.logout.LogoutFilter.doFilter(LogoutFilter.java:121)
+    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:331)
+    at org.springframework.security.web.header.HeaderWriterFilter.doFilterInternal(HeaderWriterFilter.java:66)
+    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:331)
+    at org.springframework.security.web.context.SecurityContextPersistenceFilter.doFilter(SecurityContextPersistenceFilter.java:105)
+    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:331)
+    at org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter.doFilterInternal(WebAsyncManagerIntegrationFilter.java:56)
+    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+    at org.springframework.security.web.FilterChainProxy$VirtualFilterChain.doFilter(FilterChainProxy.java:331)
+    at org.springframework.security.web.FilterChainProxy.doFilterInternal(FilterChainProxy.java:214)
+    at org.springframework.security.web.FilterChainProxy.doFilter(FilterChainProxy.java:177)
+    at org.springframework.web.filter.DelegatingFilterProxy.invokeDelegate(DelegatingFilterProxy.java:346)
+    at org.springframework.web.filter.DelegatingFilterProxy.doFilter(DelegatingFilterProxy.java:262)
+    at com.example.stacktrace.servlet.SecurityStrategy.doFilter(SecurityStrategy.java:32)
+    at com.example.stacktrace.servlet.LogbookFilter.doFilter(LogbookFilter.java:33)
+    at com.example.stacktrace.servlet.HttpFilter.doFilter(HttpFilter.java:32)
+    at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:197)
+    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+    at org.springframework.boot.actuate.autoconfigure.MetricsFilter.doFilterInternal(MetricsFilter.java:107)
+    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107)
+    at com.example.stacktrace.servlet.TracerFilter.doFilter(TracerFilter.java:33)
+    at com.example.stacktrace.servlet.HttpFilter.doFilter(HttpFilter.java:28)
+"#;
+
+const _STACKTRACE_SAMPLE_JAVA_2: &str = r#"Exception in thread "main" java.lang.IllegalArgumentException: foo
+    at com.example.stacktrace.Example.fail(Example.java:11)
+    at java.lang.Thread.run(Thread.java:750)
+Caused by: com.example.stacktrace.Example$Exception: bar
+    at com.example.stacktrace.Example.fail(Example.java:12)
+... 2 more
 "#;
 
 const STACKTRACE_SAMPLE_RUST: &str = r#"stack backtrace:
@@ -279,76 +285,6 @@ const STACKTRACE_SAMPLE_RUST: &str = r#"stack backtrace:
   84: syntax::with_globals
 "#;
 
-const STACKTRACE_DIV_CLASSES: &str = "\
-    bg-slate-700 \
-    text-slate-100 \
-    font-mono \
-    \
-    h-[36rem] \
-    w-full \
-    lg:max-w-7xl \
-    p-4 \
-    rounded-lg \
-    shadow-[inset_0_2px_4px_0_rgba(0,0,0,0.3)] \
-    \
-    overflow-scroll \
-    text-nowrap \
-";
-
-const STACKTRACE_DIV_PLACEHOLDER_CLASSES: &str = "\
-    opacity-75 \
-    italic \
-    select-none \
-";
-
-const SECTION_DIV_CLASSES: &str = "\
-    whitespace-pre \
-";
-
-/// Since `peer-*` modifiers work on sibling components, and the `<input>` is
-/// nested within a `<div>`, we don't need to generate unique peer names for
-/// each `section`.
-///
-/// This also avoids needing to generate CSS based on dynamic class names --
-/// which would've required `encre`.
-const SECTION_DIV_CHECKBOX_CLASSES: &str = "\
-    peer/section \
-    hidden \
-";
-const SECTION_DIV_CHILDREN_CLASSES: &str = "peer-checked/section:hidden";
-
-/// For `bg-arrow`, see `tailwind.config.js`.
-const SECTION_DIV_TRIANGLE_CLASSES: &str = "\
-    w-4 \
-    h-4 \
-    p-1 \
-    align-text-bottom \
-    inline-block \
-    bg-arrow \
-    bg-no-repeat \
-    bg-center \
-    rotate-90 \
-    peer-checked/section:rotate-0 \
-";
-const SECTION_DIV_TRIANGLE_HIDDEN_CLASSES: &str = "\
-    w-4 \
-    h-4 \
-    p-1 \
-    align-text-bottom \
-    inline-block \
-";
-
-const SECTION_DIV_SLICE_CLASSES: &str = "\
-    pl-2.5 \
-    select-text \
-    cursor-text \
-    hover:bg-slate-500 \
-";
-
-const SECTION_DIV_SLICE_COMMON_CLASSES: &str = "\
-    opacity-20 \
-";
-
 #[component]
 pub fn App() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
@@ -361,7 +297,7 @@ pub fn App() -> impl IntoView {
     view! {
         // injects a stylesheet into the document <head>
         // id=leptos means cargo-leptos will hot-reload this stylesheet
-        <Stylesheet id="leptos" href="/pkg/stacktrace.css"/>
+        // <Stylesheet id="leptos" href="/pkg/stacktrace.css"/>
 
         // sets the document title
         <Title text="stacktrace • azriel.im"/>
@@ -393,23 +329,29 @@ pub fn App() -> impl IntoView {
 /// Renders the home page of your application.
 #[component]
 fn HomePage() -> impl IntoView {
-    let stacktrace_str = RwSignal::new(String::new());
-    let stacktrace_on_input = move |ev| *stacktrace_str.write() = event_target_value(&ev);
-    let stacktrace = Signal::derive(move || Stacktrace::from(stacktrace_str.get().as_str()));
+    let log_str = RwSignal::new(String::new());
+    let log_on_input = move |ev| *log_str.write() = event_target_value(&ev);
+    let sem_log_result = Memo::new(move |_previous| {
+        let log_str = log_str.get();
+        LogParser::parse_from_str(log_str.as_str())
+            .map(SemLog::from)
+            .map(|sem_log| sem_log.into_static())
+    });
+    let sem_log = Signal::derive(move || sem_log_result.get().ok());
 
     view! {
         <div class=HOMEPAGE_CLASSES>
-            <StacktraceSamples stacktrace_str />
+            <StacktraceSamples log_str />
             <textarea
                 class=STACKTRACE_TEXT_CLASSES
-                on:input=stacktrace_on_input
+                on:input=log_on_input
                 placeholder=STACKTRACE_TEXT_PLACEHOLDER
                 prop:value={
-                    move || stacktrace_str.get()
+                    move || log_str.get()
                 }
             />
 
-            <StacktraceDiv stacktrace />
+            <LogViewer sem_log />
         </div>
     }
 }
@@ -425,9 +367,9 @@ fn RouterFallback() -> impl IntoView {
 }
 
 #[component]
-fn StacktraceSamples(stacktrace_str: RwSignal<String>) -> impl IntoView {
-    let stacktrace_sample_java = move |_| *stacktrace_str.write() = STACKTRACE_SAMPLE_JAVA.into();
-    let stacktrace_sample_rust = move |_| *stacktrace_str.write() = STACKTRACE_SAMPLE_RUST.into();
+fn StacktraceSamples(log_str: RwSignal<String>) -> impl IntoView {
+    let stacktrace_sample_java = move |_| *log_str.write() = STACKTRACE_SAMPLE_JAVA_1.into();
+    let stacktrace_sample_rust = move |_| *log_str.write() = STACKTRACE_SAMPLE_RUST.into();
     view! {
         <div class=STACKTRACE_SAMPLES_DIV_CLASSES>
             <span>"Samples:"</span>
@@ -435,86 +377,4 @@ fn StacktraceSamples(stacktrace_str: RwSignal<String>) -> impl IntoView {
             <button on:click=stacktrace_sample_rust type="button">"🦀 Rust"</button>
         </div>
     }
-}
-
-#[component]
-fn StacktraceDiv(stacktrace: Signal<Stacktrace>) -> impl IntoView {
-    let placeholder_classes = move || {
-        if stacktrace.get().sections.is_empty() {
-            STACKTRACE_DIV_PLACEHOLDER_CLASSES
-        } else {
-            "hidden"
-        }
-    };
-    view! {
-        <div class=STACKTRACE_DIV_CLASSES>
-            <span class=placeholder_classes>
-                "Paste a stacktrace into the text box above"
-            </span>
-            <For
-                each=move || stacktrace.get().sections.clone()
-                key=section_hash
-                children=|section: Section| view! { <SectionDiv section /> }
-            />
-        </div>
-    }
-}
-
-#[component]
-fn SectionDiv(section: Section) -> impl IntoView {
-    let section_name = {
-        let section_hash = section_hash(&section);
-        format!("section-{section_hash}")
-    };
-
-    let triangle_classes = if section.child_sections().is_empty() {
-        SECTION_DIV_TRIANGLE_HIDDEN_CLASSES
-    } else {
-        SECTION_DIV_TRIANGLE_CLASSES
-    };
-
-    // The flat structure is important:
-    //
-    // * `<input>` is used as a `peer-checked/section`
-    // * The `label` and inner `div` rely on `<input>` being a sibling element for
-    //   styling.
-    view! {
-        <div class=SECTION_DIV_CLASSES>
-            <input
-                id=section_name.clone()
-                name=section_name.clone()
-                type="checkbox"
-                class=SECTION_DIV_CHECKBOX_CLASSES
-            />
-            <label
-                for=section_name.clone()
-                class=triangle_classes
-            />
-            <label
-                for=section_name
-                class=SECTION_DIV_SLICE_CLASSES
-            >
-                <span class=SECTION_DIV_SLICE_COMMON_CLASSES>
-                    {section.slice_common_with_previous_frames().to_string()}
-                </span>
-                <span>
-                    {section.slice_remainder().to_string()}
-                </span>
-            </label>
-            <div class=SECTION_DIV_CHILDREN_CLASSES>
-                <For
-                    each=move || section.child_sections.clone()
-                    key=section_hash
-                    children=|child_section: Section| view! { <SectionDiv section=child_section /> }
-                />
-            </div>
-        </div>
-    }
-    .into_any()
-}
-
-fn section_hash(section: &Section) -> u64 {
-    let mut hasher = DefaultHasher::new();
-    section.hash(&mut hasher);
-    hasher.finish()
 }

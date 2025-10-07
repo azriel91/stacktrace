@@ -1,0 +1,57 @@
+/// `$` makes this a compound atomic rule, which prevents implicit whitespace and reports back whitespace.
+///
+/// <https://pest.rs/book/grammars/syntax.html#predicates>
+// ANY_NOT_NEWLINE = ${ ASCII_ALPHANUMERIC | LETTER | MARK | NUMBER | PUNCTUATION | SYMBOL }
+ANY_NOT_NEWLINE                  = ${ !NEWLINE ~ ANY }
+ALPHA_OR_UNDERSCORE              =  { ASCII_ALPHA | "_" }
+ALPHANUMERIC_OR_UNDERSCORE       =  { ASCII_ALPHA | ASCII_DIGIT | "_" }
+ALPHA_LOWER_OR_UNDERSCORE        =  { ASCII_ALPHA_LOWER | "_" }
+ALPHANUMERIC_LOWER_OR_UNDERSCORE =  { ASCII_ALPHA_LOWER | ASCII_DIGIT | "_" }
+
+// Constants so that we don't duplicate static strings in code.
+CAUSED_BY           = { "Caused by:" }
+EXCEPTION_IN_THREAD = { "Exception in thread" }
+CONST_NATIVE_METHOD = { "Native Method" }
+
+// Leading `_` means a silent rule:
+// <https://pest.rs/book/grammars/syntax.html#silent-and-atomic-rules>
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+
+/// Root rule of the grammar.
+///
+/// `SOI` is the start of input, `EOI` is the end of input.
+Log      = { SOI ~ LogEntry* ~ EOI }
+LogEntry = { LogEntryStacktrace | LogEntryNormal }
+
+/// Any other message not matched by the parser.
+///
+/// `!` is the negation operator: <https://pest.rs/book/grammars/syntax.html#predicates>.
+LogEntryNormal     = ${ ANY_NOT_NEWLINE* ~ NEWLINE }
+LogEntryStacktrace =  { JavaStacktrace }
+
+/// Reference to the source file.
+FilePathAndLine = { FilePath ~ ":" ~ LineNumber }
+
+/// `$` makes this an atomic rule, which prevents implicit whitespace.
+/// <https://pest.rs/book/grammars/syntax.html#silent-and-atomic-rules>
+FilePath          = ${ FilePathSegment ~ (FilePathSeparator ~ FilePathSegment)* }
+FilePathSeparator =  { "/" | "\\" }
+FilePathSymChars  =  { "_" | "-" | "." }
+FilePathSegment   = ${ (ASCII_ALPHANUMERIC | FilePathSymChars) ~ (ASCII_ALPHANUMERIC | FilePathSymChars)* }
+LineNumber        =  { ASCII_DIGIT+ }
+
+JavaStacktrace                =  { JavaStacktraceHeader ~ JavaStacktraceFrame+ }
+JavaStacktraceHeader          =  { (JavaStacktraceHeaderThread | CAUSED_BY)? ~ JavaStacktraceHeaderException ~ ":" ~ JavaStacktraceHeaderMessage }
+JavaStacktraceHeaderThread    =  { EXCEPTION_IN_THREAD ~ JavaThreadName }
+JavaStacktraceHeaderException =  { JavaClassNameQualified }
+JavaStacktraceHeaderMessage   = ${ ANY_NOT_NEWLINE* }
+JavaStacktraceFrame           =  { "at" ~ JavaClassNameQualified ~ "." ~ JavaMethodName ~ "(" ~ (FilePathAndLine | CONST_NATIVE_METHOD) ~ ")" }
+JavaClassNameQualified        = ${ JavaPackage ~ "." ~ JavaClassNameSimple }
+JavaClassNameSimple           = ${ JavaClassNameSegment ~ ("$" ~ JavaClassNameSegment)* }
+JavaClassNameSegment          =  { UPPERCASE_LETTER ~ (ASCII_ALPHANUMERIC | "_")* }
+JavaPackage                   = ${ JavaPackageSegment ~ ("." ~ JavaPackageSegment)* }
+JavaPackageSegment            =  { JavaIdentifierLower }
+JavaMethodName                =  { JavaIdentifier }
+JavaThreadName                =  { "\"" ~ (!"\"" ~ ANY)+ ~ "\"" }
+JavaIdentifier                = ${ ALPHA_OR_UNDERSCORE ~ ALPHANUMERIC_OR_UNDERSCORE* }
+JavaIdentifierLower           = ${ ALPHA_LOWER_OR_UNDERSCORE ~ ALPHANUMERIC_LOWER_OR_UNDERSCORE* }
