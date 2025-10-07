@@ -196,7 +196,7 @@ jobs:
   build_and_test_windows:
     name: Build and Test (Windows)
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 45 # cargo-leptos can take a while to compile
     steps:
       - name: Prepare symlink configuration
         run: git config --global core.symlinks true
