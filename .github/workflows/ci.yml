@@ -28,16 +28,23 @@ jobs:
       - uses: actions/checkout@v4
       - uses: EmbarkStudios/cargo-deny-action@v2
 
-      - name: cargo-about cache
-        id: cargo-about-cache
-        uses: actions/cache@v4
+      - name: cargo-about cache restore
+        id: cargo_about_cache_restore
+        uses: actions/cache/restore@v4
         with:
           path: ~/.cargo/bin/cargo-about
-          key: cargo-about-${{ runner.os }}
+          key: ${{ runner.os }}-cargo-about
 
-      - name: cargo-about install
-        if: steps.cargo-about-cache.outputs.cache-hit != 'true'
-        run: cargo install --locked cargo-about
+      - run: cargo install --locked cargo-about
+        if: steps.cargo_about_cache_restore.outputs.cache-hit != 'true'
+
+      - name: cargo-about cache save
+        id: cargo_about_cache_save
+        uses: actions/cache/save@v4
+        if: always() && steps.cargo_about_cache_restore.outputs.cache-hit != 'true'
+        with:
+          path: ~/.cargo/bin/cargo-about
+          key: ${{ runner.os }}-cargo-about
 
       - name: cargo-about generate licenses
         run: cargo about generate --workspace about.hbs > doc/src/licenses.html
@@ -111,16 +118,23 @@ jobs:
           toolchain: stable
           targets: wasm32-unknown-unknown
 
-      - name: cargo-leptos cache
-        id: cargo-leptos-cache
-        uses: actions/cache@v4
+      - name: cargo-leptos cache restore
+        id: cargo_leptos_cache_restore
+        uses: actions/cache/restore@v4
         with:
           path: ~/.cargo/bin/cargo-leptos
-          key: cargo-leptos-${{ runner.os }}
+          key: ${{ runner.os }}-cargo-leptos
 
-      - name: cargo-leptos install
-        if: steps.cargo-leptos-cache.outputs.cache-hit != 'true'
-        run: cargo install cargo-leptos
+      - run: cargo install cargo-leptos
+        if: steps.cargo_leptos_cache_restore.outputs.cache-hit != 'true'
+
+      - name: cargo-leptos cache save
+        id: cargo_leptos_cache_save
+        uses: actions/cache/save@v4
+        if: always() && steps.cargo_leptos_cache_restore.outputs.cache-hit != 'true'
+        with:
+          path: ~/.cargo/bin/cargo-leptos
+          key: ${{ runner.os }}-cargo-leptos
 
       - name: "Build playground"
         working-directory: ./playground
@@ -138,16 +152,23 @@ jobs:
           toolchain: stable
           targets: wasm32-unknown-unknown
 
-      - name: trunkrs cache
-        id: trunkrs-cache
-        uses: actions/cache@v4
+      - name: trunk cache restore
+        id: trunk_cache_restore
+        uses: actions/cache/restore@v4
         with:
           path: ~/.cargo/bin/trunk
-          key: trunk-${{ runner.os }}
+          key: ${{ runner.os }}-trunk
 
-      - name: trunk install
-        if: steps.trunkrs-cache.outputs.cache-hit != 'true'
-        run: cargo install --locked trunk
+      - run: cargo install trunk
+        if: steps.trunk_cache_restore.outputs.cache-hit != 'true'
+
+      - name: trunk cache save
+        id: trunk_cache_save
+        uses: actions/cache/save@v4
+        if: always() && steps.trunk_cache_restore.outputs.cache-hit != 'true'
+        with:
+          path: ~/.cargo/bin/trunk
+          key: ${{ runner.os }}-trunk
 
       - name: "Build playground"
         working-directory: ./playground
@@ -182,18 +203,23 @@ jobs:
           toolchain: stable
           targets: wasm32-unknown-unknown
 
-      - name: cargo-leptos cache
-        id: cargo-leptos-cache
-        uses: actions/cache@v4
+      - name: cargo-leptos cache restore
+        id: cargo_leptos_cache_restore
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cargo/bin/cargo-leptos
+          key: ${{ runner.os }}-cargo-leptos
+
+      - run: cargo install cargo-leptos
+        if: steps.cargo_leptos_cache_restore.outputs.cache-hit != 'true'
+
+      - name: cargo-leptos cache save
+        id: cargo_leptos_cache_save
+        uses: actions/cache/save@v4
+        if: always() && steps.cargo_leptos_cache_restore.outputs.cache-hit != 'true'
         with:
           path: 'C:\Users\runneradmin\.cargo\bin\cargo-leptos.exe'
-          key: cargo-leptos-${{ runner.os }}
-
-      - name: cargo-leptos install
-        if: steps.cargo-leptos-cache.outputs.cache-hit != 'true'
-        # --locked: fix is in-progress at https://github.com/leptos-rs/cargo-leptos/pull/274
-        run: |-
-          cargo install cargo-leptos --locked
+          key: ${{ runner.os }}-cargo-leptos
 
       - name: "Build playground"
         working-directory: ./playground
