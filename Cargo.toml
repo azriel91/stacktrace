@@ -51,8 +51,12 @@ codegen-units = 1
 panic = "abort"
 
 [patch.crates-io]
+hydration_context = { git = "https://github.com/azriel91/leptos.git", branch = "feature/4361/support-toggle-event" }
 leptos = { git = "https://github.com/azriel91/leptos.git", branch = "feature/4361/support-toggle-event" }
+leptos_axum = { git = "https://github.com/azriel91/leptos.git", branch = "feature/4361/support-toggle-event" }
 leptos_dom = { git = "https://github.com/azriel91/leptos.git", branch = "feature/4361/support-toggle-event" }
 leptos_meta = { git = "https://github.com/azriel91/leptos.git", branch = "feature/4361/support-toggle-event" }
 leptos_router = { git = "https://github.com/azriel91/leptos.git", branch = "feature/4361/support-toggle-event" }
+leptos_integration_utils = { git = "https://github.com/azriel91/leptos.git", branch = "feature/4361/support-toggle-event" }
+reactive_graph = { git = "https://github.com/azriel91/leptos.git", branch = "feature/4361/support-toggle-event" }
 tachys = { git = "https://github.com/azriel91/leptos.git", branch = "feature/4361/support-toggle-event" }
