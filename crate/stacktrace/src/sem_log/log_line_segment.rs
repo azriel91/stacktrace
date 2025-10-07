@@ -31,7 +31,7 @@ impl<'s> LogLineSegment<'s> {
         }
     }
 
-    /// Returns a hash of this [`LogBlock`] using the default hasher.
+    /// Returns a hash of this [`LogLineSegment`] using the default hasher.
     pub fn hash_with_default_hasher(&self) -> u64 {
         let mut hasher = DefaultHasher::new();
         self.hash(&mut hasher);

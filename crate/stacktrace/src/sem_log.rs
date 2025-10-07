@@ -89,7 +89,7 @@
 //! A Rust backtrace is reduced differently -- as stack frames are prefixed with
 //! frame numbers:
 //!
-//! ```rust,ignore
+//! ```text
 //! stack backtrace:
 //!    0: std::panicking::panic_handler
 //!              at /rustc/7c275d09ea6b953d2cca169667184a7214bd14c7/library\std\src\panicking.rs:698

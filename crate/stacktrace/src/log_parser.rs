@@ -3,7 +3,13 @@ use pest_derive::Parser;
 
 use crate::log::{Log, LogEntry};
 
-/// Parser for [`Logs`].
+/// Parser for [`Log`]s.
+///
+/// After parsing, you would likely want to turn this into a [`SemLog`] via
+/// [`SemLog::from`].
+///
+/// [`SemLog`]: crate::sem_log::SemLog
+/// [`SemLog::from`]: crate::sem_log::SemLog::from
 #[derive(Parser)]
 #[grammar = "logs.pest"]
 pub struct LogParser;
