@@ -32,7 +32,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: 'Install Rust'
+      - name: "Install Rust"
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly
@@ -67,7 +67,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           # Upload playground/dist directory
-          path: 'playground/dist'
+          path: "playground/dist"
 
       - name: Deploy to GitHub Pages
         id: deployment
