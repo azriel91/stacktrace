@@ -15,11 +15,9 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: actions-rust-lang/audit@v1
-        name: Audit Rust Dependencies
+      - uses: rustsec/audit-check@v2
         with:
-          denyWarnings: true
-          createIssues: false
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   licenses:
     name: Licenses
