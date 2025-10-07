@@ -38,8 +38,8 @@
 
 1. [x] Client side static web application.
 2. [x] Collapsible frames.
-3. [ ] Parse lines with different leading segments.
-4. [ ] Collapsible segments based on common modules.
+3. [x] Parse lines with different leading segments.
+4. [x] Collapsible segments based on common modules.
 5. [ ] Detect file names, one-click copy.
 6. [ ] Rename this, so it can be published on `crates.io` and used as a library.
 
@@ -57,4 +57,3 @@ at your option.
 ### Contribution
 
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
-
