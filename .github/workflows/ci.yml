@@ -101,6 +101,8 @@ jobs:
     name: Build Playground (Linux, cargo-leptos)
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      RUST_BACKTRACE: 1
     steps:
       - uses: actions/checkout@v4
       - name: 'Install Rust'
