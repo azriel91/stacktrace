@@ -136,10 +136,9 @@ mod tests {
                                 },
                             },
                         },
-                        colon: Cow::Borrowed(":"),
-                        message: JavaStacktraceHeaderMessage {
-                            text: Cow::Borrowed("foo"),
-                        },
+                        message: Some(JavaStacktraceHeaderMessage {
+                            text: Cow::Borrowed(": foo"),
+                        }),
                     },
                     frames: vec![
                         JavaStacktraceFrame {

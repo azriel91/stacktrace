@@ -41,7 +41,7 @@ FilePathSegment   = ${ (ASCII_ALPHANUMERIC | FilePathSymChars) ~ (ASCII_ALPHANUM
 LineNumber        =  { ASCII_DIGIT+ }
 
 JavaStacktrace                =  { JavaStacktraceHeader ~ JavaStacktraceFrame+ }
-JavaStacktraceHeader          =  { (JavaStacktraceHeaderThread | CAUSED_BY)? ~ JavaStacktraceHeaderException ~ ":" ~ JavaStacktraceHeaderMessage }
+JavaStacktraceHeader          =  { (JavaStacktraceHeaderThread | CAUSED_BY)? ~ JavaStacktraceHeaderException ~ JavaStacktraceHeaderMessage? }
 JavaStacktraceHeaderThread    =  { EXCEPTION_IN_THREAD ~ JavaThreadName }
 JavaStacktraceHeaderException =  { JavaClassNameQualified }
 JavaStacktraceHeaderMessage   = ${ ANY_NOT_NEWLINE* }
