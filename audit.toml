@@ -1,8 +1,0 @@
-[advisories]
-ignore = [
-    # `paste` is unmaintained.
-    #
-    # Transitive dependency of `leptos`.
-    # Pending <https://github.com/leptos-rs/leptos/issues/3685>.
-    "RUSTSEC-2024-0436",
-]
