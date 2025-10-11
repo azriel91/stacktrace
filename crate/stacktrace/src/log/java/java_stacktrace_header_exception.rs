@@ -1,6 +1,6 @@
 use pest::iterators::Pair;
 
-use crate::{log::java::JavaClassNameQualified, log_parser::Rule};
+use crate::{log::java::JavaQualifiedReference, log_parser::Rule};
 
 /// The exception class name in a stack trace header.
 ///
@@ -19,7 +19,7 @@ use crate::{log::java::JavaClassNameQualified, log_parser::Rule};
 pub struct JavaStacktraceHeaderException<'s> {
     /// The exception class name, e.g.
     /// `com.example.stacktrace.Example$Exception`.
-    pub class_name: JavaClassNameQualified<'s>,
+    pub class_name: JavaQualifiedReference<'s>,
 }
 
 impl<'s> From<Pair<'s, Rule>> for JavaStacktraceHeaderException<'s> {
@@ -28,9 +28,9 @@ impl<'s> From<Pair<'s, Rule>> for JavaStacktraceHeaderException<'s> {
             None,
             |_class_name, java_stacktrace_header_exception_pair_inner| {
                 match java_stacktrace_header_exception_pair_inner.as_rule() {
-                    Rule::JavaClassNameQualified => {
+                    Rule::JavaQualifiedReference => {
                         let class_name_pair = java_stacktrace_header_exception_pair_inner;
-                        Some(JavaClassNameQualified::from(class_name_pair))
+                        Some(JavaQualifiedReference::from(class_name_pair))
                     }
                     _ => unreachable!(),
                 }
@@ -38,7 +38,7 @@ impl<'s> From<Pair<'s, Rule>> for JavaStacktraceHeaderException<'s> {
         );
 
         let class_name =
-            class_name.expect("Expected `JavaClassNameQualified` to exist after parsing.");
+            class_name.expect("Expected `JavaQualifiedReference` to exist after parsing.");
 
         Self { class_name }
     }

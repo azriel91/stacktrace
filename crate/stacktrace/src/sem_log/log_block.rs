@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    log::java::{JavaClassNameQualified, JavaStacktraceFrame, JavaStacktraceFrameSource},
+    log::java::{JavaQualifiedReference, JavaStacktraceFrame, JavaStacktraceFrameSource},
     sem_log::{LogLineSegment, LogLineSegmentKind},
 };
 
@@ -96,44 +96,40 @@ impl<'s> From<JavaStacktraceFrame<'s>> for LogBlockPartial<'s> {
         let JavaStacktraceFrame {
             full_text,
             at,
-            class_name_qualified:
-                JavaClassNameQualified {
+            method_qualified_reference:
+                JavaQualifiedReference {
                     full_text: _,
-                    package,
-                    class_name_simple,
+                    segments,
                 },
-            dot,
-            method_name,
             parenthesis_open,
             frame_source,
             parenthesis_close,
         } = frame;
         let text = full_text;
         let line_segments = {
-            let mut line_segments = Vec::with_capacity(package.segments.len() + 4);
+            let mut line_segments = Vec::with_capacity(segments.len() + 3);
             line_segments.push(LogLineSegment {
                 text: at,
                 separator: Cow::Borrowed(" "),
                 kind: LogLineSegmentKind::Context,
             });
-            line_segments.extend(package.segments.into_iter().map(|package_segment| {
-                LogLineSegment {
-                    text: package_segment.identifier.text,
-                    separator: Cow::Borrowed("."),
-                    kind: LogLineSegmentKind::Introduced,
-                }
-            }));
-            line_segments.push(LogLineSegment {
-                text: class_name_simple.full_text,
-                separator: dot,
+            line_segments.extend(segments.into_iter().map(|package_segment| LogLineSegment {
+                text: package_segment.identifier.text,
+                separator: Cow::Borrowed("."),
                 kind: LogLineSegmentKind::Introduced,
-            });
+            }));
+            // Remove dot from the last segment, so that there is no dot before the opening
+            // parenthesis.
+            if let Some(method_name_segment) = line_segments.last_mut() {
+                method_name_segment.separator = Cow::Borrowed("");
+            }
             line_segments.push(LogLineSegment {
-                text: method_name.identifier.text,
-                separator: parenthesis_open,
+                text: parenthesis_open,
+                separator: Cow::Borrowed(""),
                 kind: LogLineSegmentKind::Introduced,
             });
             let text = match frame_source {
+                JavaStacktraceFrameSource::UnknownSource(unknown_source) => unknown_source,
                 JavaStacktraceFrameSource::NativeMethod(native_method) => native_method,
                 JavaStacktraceFrameSource::FilePathAndLine(file_path_and_line) => {
                     file_path_and_line.full_text

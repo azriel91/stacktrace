@@ -99,9 +99,9 @@ mod tests {
 
     use crate::{
         log::java::{
-            JavaClassNameQualified, JavaClassNameSegment, JavaClassNameSimple, JavaIdentifierLower,
-            JavaPackage, JavaPackageSegment, JavaStacktraceHeader, JavaStacktraceHeaderException,
-            JavaStacktraceHeaderMessage, JavaStacktraceHeaderThread, JavaThreadName,
+            JavaIdentifier, JavaMixedIdentifier, JavaQualifiedReference, JavaStacktraceHeader,
+            JavaStacktraceHeaderException, JavaStacktraceHeaderMessage, JavaStacktraceHeaderThread,
+            JavaThreadName,
         },
         log_parser::Rule,
         LogParser,
@@ -129,29 +129,31 @@ mod tests {
                     }),
                     caused_by: None,
                     exception: JavaStacktraceHeaderException {
-                        class_name: JavaClassNameQualified {
+                        class_name: JavaQualifiedReference {
                             full_text: Cow::Borrowed("java.lang.IllegalArgumentException"),
-                            package: JavaPackage {
-                                full_text: Cow::Borrowed("java.lang"),
-                                segments: vec![
-                                    JavaPackageSegment {
-                                        identifier: JavaIdentifierLower {
-                                            text: Cow::Borrowed("java"),
-                                        },
+                            segments: vec![
+                                JavaMixedIdentifier {
+                                    angle_open: Cow::Borrowed(""),
+                                    identifier: JavaIdentifier {
+                                        text: Cow::Borrowed("java"),
                                     },
-                                    JavaPackageSegment {
-                                        identifier: JavaIdentifierLower {
-                                            text: Cow::Borrowed("lang"),
-                                        },
+                                    angle_close: Cow::Borrowed(""),
+                                },
+                                JavaMixedIdentifier {
+                                    angle_open: Cow::Borrowed(""),
+                                    identifier: JavaIdentifier {
+                                        text: Cow::Borrowed("lang"),
                                     },
-                                ],
-                            },
-                            class_name_simple: JavaClassNameSimple {
-                                full_text: Cow::Borrowed("IllegalArgumentException"),
-                                segments: vec![JavaClassNameSegment {
-                                    text: Cow::Borrowed("IllegalArgumentException"),
-                                }],
-                            },
+                                    angle_close: Cow::Borrowed(""),
+                                },
+                                JavaMixedIdentifier {
+                                    angle_open: Cow::Borrowed(""),
+                                    identifier: JavaIdentifier {
+                                        text: Cow::Borrowed("IllegalArgumentException"),
+                                    },
+                                    angle_close: Cow::Borrowed(""),
+                                },
+                            ],
                         },
                     },
                     message: Some(JavaStacktraceHeaderMessage {
@@ -182,29 +184,31 @@ mod tests {
                     thread: None,
                     caused_by: None,
                     exception: JavaStacktraceHeaderException {
-                        class_name: JavaClassNameQualified {
+                        class_name: JavaQualifiedReference {
                             full_text: Cow::Borrowed("java.lang.IllegalArgumentException"),
-                            package: JavaPackage {
-                                full_text: Cow::Borrowed("java.lang"),
-                                segments: vec![
-                                    JavaPackageSegment {
-                                        identifier: JavaIdentifierLower {
-                                            text: Cow::Borrowed("java"),
-                                        },
+                            segments: vec![
+                                JavaMixedIdentifier {
+                                    angle_open: Cow::Borrowed(""),
+                                    identifier: JavaIdentifier {
+                                        text: Cow::Borrowed("java"),
                                     },
-                                    JavaPackageSegment {
-                                        identifier: JavaIdentifierLower {
-                                            text: Cow::Borrowed("lang"),
-                                        },
+                                    angle_close: Cow::Borrowed(""),
+                                },
+                                JavaMixedIdentifier {
+                                    angle_open: Cow::Borrowed(""),
+                                    identifier: JavaIdentifier {
+                                        text: Cow::Borrowed("lang"),
                                     },
-                                ],
-                            },
-                            class_name_simple: JavaClassNameSimple {
-                                full_text: Cow::Borrowed("IllegalArgumentException"),
-                                segments: vec![JavaClassNameSegment {
-                                    text: Cow::Borrowed("IllegalArgumentException"),
-                                }],
-                            },
+                                    angle_close: Cow::Borrowed(""),
+                                },
+                                JavaMixedIdentifier {
+                                    angle_open: Cow::Borrowed(""),
+                                    identifier: JavaIdentifier {
+                                        text: Cow::Borrowed("IllegalArgumentException"),
+                                    },
+                                    angle_close: Cow::Borrowed(""),
+                                },
+                            ],
                         },
                     },
                     message: None,
