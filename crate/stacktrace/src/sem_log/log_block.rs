@@ -4,7 +4,9 @@ use std::{
 };
 
 use crate::{
-    log::java::{JavaQualifiedReference, JavaStacktraceFrame, JavaStacktraceFrameSource},
+    log::java::{
+        JavaMixedIdentifier, JavaQualifiedReference, JavaStacktraceFrame, JavaStacktraceFrameSource,
+    },
     sem_log::{LogLineSegment, LogLineSegmentKind},
 };
 
@@ -113,10 +115,18 @@ impl<'s> From<JavaStacktraceFrame<'s>> for LogBlockPartial<'s> {
                 separator: Cow::Borrowed(" "),
                 kind: LogLineSegmentKind::Context,
             });
-            line_segments.extend(segments.into_iter().map(|package_segment| LogLineSegment {
-                text: package_segment.identifier.text,
-                separator: Cow::Borrowed("."),
-                kind: LogLineSegmentKind::Introduced,
+            line_segments.extend(segments.into_iter().map(|mixed_identifier| {
+                let JavaMixedIdentifier {
+                    full_text,
+                    angle_open: _,
+                    identifier: _,
+                    angle_close: _,
+                } = mixed_identifier;
+                LogLineSegment {
+                    text: full_text,
+                    separator: Cow::Borrowed("."),
+                    kind: LogLineSegmentKind::Introduced,
+                }
             }));
             // Remove dot from the last segment, so that there is no dot before the opening
             // parenthesis.

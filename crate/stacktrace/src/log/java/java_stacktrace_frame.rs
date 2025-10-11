@@ -134,6 +134,7 @@ mod tests {
                         full_text: Cow::Borrowed("com.example.stacktrace.Example.fail"),
                         segments: vec![
                             JavaMixedIdentifier {
+                                full_text: Cow::Borrowed("com"),
                                 angle_open: Cow::Borrowed(""),
                                 identifier: JavaIdentifier {
                                     text: Cow::Borrowed("com"),
@@ -141,6 +142,7 @@ mod tests {
                                 angle_close: Cow::Borrowed(""),
                             },
                             JavaMixedIdentifier {
+                                full_text: Cow::Borrowed("example"),
                                 angle_open: Cow::Borrowed(""),
                                 identifier: JavaIdentifier {
                                     text: Cow::Borrowed("example"),
@@ -148,6 +150,7 @@ mod tests {
                                 angle_close: Cow::Borrowed(""),
                             },
                             JavaMixedIdentifier {
+                                full_text: Cow::Borrowed("stacktrace"),
                                 angle_open: Cow::Borrowed(""),
                                 identifier: JavaIdentifier {
                                     text: Cow::Borrowed("stacktrace"),
@@ -155,6 +158,7 @@ mod tests {
                                 angle_close: Cow::Borrowed(""),
                             },
                             JavaMixedIdentifier {
+                                full_text: Cow::Borrowed("Example"),
                                 angle_open: Cow::Borrowed(""),
                                 identifier: JavaIdentifier {
                                     text: Cow::Borrowed("Example"),
@@ -162,6 +166,7 @@ mod tests {
                                 angle_close: Cow::Borrowed(""),
                             },
                             JavaMixedIdentifier {
+                                full_text: Cow::Borrowed("fail"),
                                 angle_open: Cow::Borrowed(""),
                                 identifier: JavaIdentifier {
                                     text: Cow::Borrowed("fail"),
@@ -207,6 +212,7 @@ mod tests {
                         full_text: Cow::Borrowed("com.example.stacktrace.Example.<init>"),
                         segments: vec![
                             JavaMixedIdentifier {
+                                full_text: Cow::Borrowed("com"),
                                 angle_open: Cow::Borrowed(""),
                                 identifier: JavaIdentifier {
                                     text: Cow::Borrowed("com"),
@@ -214,6 +220,7 @@ mod tests {
                                 angle_close: Cow::Borrowed(""),
                             },
                             JavaMixedIdentifier {
+                                full_text: Cow::Borrowed("example"),
                                 angle_open: Cow::Borrowed(""),
                                 identifier: JavaIdentifier {
                                     text: Cow::Borrowed("example"),
@@ -221,6 +228,7 @@ mod tests {
                                 angle_close: Cow::Borrowed(""),
                             },
                             JavaMixedIdentifier {
+                                full_text: Cow::Borrowed("stacktrace"),
                                 angle_open: Cow::Borrowed(""),
                                 identifier: JavaIdentifier {
                                     text: Cow::Borrowed("stacktrace"),
@@ -228,6 +236,7 @@ mod tests {
                                 angle_close: Cow::Borrowed(""),
                             },
                             JavaMixedIdentifier {
+                                full_text: Cow::Borrowed("Example"),
                                 angle_open: Cow::Borrowed(""),
                                 identifier: JavaIdentifier {
                                     text: Cow::Borrowed("Example"),
@@ -235,6 +244,7 @@ mod tests {
                                 angle_close: Cow::Borrowed(""),
                             },
                             JavaMixedIdentifier {
+                                full_text: Cow::Borrowed("<init>"),
                                 angle_open: Cow::Borrowed("<"),
                                 identifier: JavaIdentifier {
                                     text: Cow::Borrowed("init"),

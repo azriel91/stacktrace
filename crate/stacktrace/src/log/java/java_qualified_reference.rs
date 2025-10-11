@@ -63,6 +63,7 @@ mod tests {
                     full_text: Cow::Borrowed("com.example.stacktrace._Class$0$1.<init>"),
                     segments: vec![
                         JavaMixedIdentifier {
+                            full_text: Cow::Borrowed("com"),
                             angle_open: Cow::Borrowed(""),
                             identifier: JavaIdentifier {
                                 text: Cow::Borrowed("com"),
@@ -70,6 +71,7 @@ mod tests {
                             angle_close: Cow::Borrowed(""),
                         },
                         JavaMixedIdentifier {
+                            full_text: Cow::Borrowed("example"),
                             angle_open: Cow::Borrowed(""),
                             identifier: JavaIdentifier {
                                 text: Cow::Borrowed("example"),
@@ -77,6 +79,7 @@ mod tests {
                             angle_close: Cow::Borrowed(""),
                         },
                         JavaMixedIdentifier {
+                            full_text: Cow::Borrowed("stacktrace"),
                             angle_open: Cow::Borrowed(""),
                             identifier: JavaIdentifier {
                                 text: Cow::Borrowed("stacktrace"),
@@ -84,6 +87,7 @@ mod tests {
                             angle_close: Cow::Borrowed(""),
                         },
                         JavaMixedIdentifier {
+                            full_text: Cow::Borrowed("_Class$0$1"),
                             angle_open: Cow::Borrowed(""),
                             identifier: JavaIdentifier {
                                 text: Cow::Borrowed("_Class$0$1"),
@@ -91,6 +95,7 @@ mod tests {
                             angle_close: Cow::Borrowed(""),
                         },
                         JavaMixedIdentifier {
+                            full_text: Cow::Borrowed("<init>"),
                             angle_open: Cow::Borrowed("<"),
                             identifier: JavaIdentifier {
                                 text: Cow::Borrowed("init"),

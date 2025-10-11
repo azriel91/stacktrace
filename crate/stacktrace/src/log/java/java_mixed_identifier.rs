@@ -11,6 +11,8 @@ use crate::{log::java::JavaIdentifier, log_parser::Rule};
 /// `com.example.stacktrace.Example$0$1.<init>(Example.java:11)`.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct JavaMixedIdentifier<'s> {
+    /// The full text of the identifier, e.g. `"<init>"`.
+    pub full_text: Cow<'s, str>,
     /// The opening angle bracket, e.g. `"<"`, if any.
     pub angle_open: Cow<'s, str>,
     /// Any of the segments in
@@ -22,6 +24,7 @@ pub struct JavaMixedIdentifier<'s> {
 
 impl<'s> From<Pair<'s, Rule>> for JavaMixedIdentifier<'s> {
     fn from(java_mixed_identifier_pair: Pair<'s, Rule>) -> Self {
+        let full_text = Cow::Borrowed(java_mixed_identifier_pair.as_str());
         let (angle_open, identifier, angle_close) = java_mixed_identifier_pair.into_inner().fold(
             (None, None, None),
             |(mut angle_open, mut identifier, mut angle_close),
@@ -54,6 +57,7 @@ impl<'s> From<Pair<'s, Rule>> for JavaMixedIdentifier<'s> {
         let angle_close = angle_close.unwrap_or(Cow::Borrowed(""));
 
         Self {
+            full_text,
             angle_open,
             identifier,
             angle_close,
