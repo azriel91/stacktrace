@@ -136,7 +136,7 @@ impl<'s> From<JavaStacktraceFrame<'s>> for LogBlockPartial<'s> {
             line_segments.push(LogLineSegment {
                 text: parenthesis_open,
                 separator: Cow::Borrowed(""),
-                kind: LogLineSegmentKind::Introduced,
+                kind: LogLineSegmentKind::Context,
             });
             let text = match frame_source {
                 JavaStacktraceFrameSource::UnknownSource(unknown_source) => unknown_source,

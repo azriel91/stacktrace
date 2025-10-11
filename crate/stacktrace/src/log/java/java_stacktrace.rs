@@ -263,6 +263,16 @@ impl<'s> JavaStacktrace<'s> {
                         log_block_partial_iter,
                     );
 
+                    let (line_segments_collapsed, children_collapsed_text) =
+                        line_segments_collapsed_compute(&line_segments, &children);
+                    let log_block = LogBlock {
+                        text,
+                        line_segments,
+                        line_segments_collapsed,
+                        children,
+                        children_collapsed_text,
+                    };
+
                     // If `log_block_partial` is `Some`, it means the next frame was not a child.
                     //
                     // The number of segments it has in common with *this* frame's parent determines
@@ -281,10 +291,14 @@ impl<'s> JavaStacktrace<'s> {
                             let next_frame_common_segment_count_cmp_parent =
                                 next_frame_common_segment_count.cmp(&parent_common_segment_count);
                             match next_frame_common_segment_count_cmp_parent {
-                                // Recurse upward.
+                                // Record the current frame, and recurse upward.
                                 //
-                                // Note: The `return` here actually returns out of the function.
-                                Ordering::Less => return Some(log_block_partial),
+                                // The `return` here returns out of the function.
+                                Ordering::Less => {
+                                    log_blocks.push(log_block);
+
+                                    return Some(log_block_partial);
+                                }
 
                                 // Sibling, so we continue this level of recursion's loop
                                 Ordering::Equal => Some(log_block_partial),
@@ -297,15 +311,6 @@ impl<'s> JavaStacktrace<'s> {
                         None => None,
                     };
 
-                    let (line_segments_collapsed, children_collapsed_text) =
-                        line_segments_collapsed_compute(&line_segments, &children);
-                    let log_block = LogBlock {
-                        text,
-                        line_segments,
-                        line_segments_collapsed,
-                        children,
-                        children_collapsed_text,
-                    };
                     (log_block, log_block_partial)
                 }
             };
@@ -491,6 +496,7 @@ mod tests {
     use std::borrow::Cow;
 
     use pest::Parser;
+    use pretty_assertions::assert_eq;
 
     use crate::{
         log::java::JavaStacktrace,
@@ -570,7 +576,7 @@ mod tests {
                                 LogLineSegment {
                                     text: Cow::Borrowed("("),
                                     separator: Cow::Borrowed(""),
-                                    kind: LogLineSegmentKind::Introduced
+                                    kind: LogLineSegmentKind::Context
                                 },
                                 LogLineSegment {
                                     text: Cow::Borrowed("Native Method"),
@@ -627,7 +633,7 @@ mod tests {
                                         LogLineSegment {
                                             text: Cow::Borrowed("("),
                                             separator: Cow::Borrowed(""),
-                                            kind: LogLineSegmentKind::Introduced
+                                            kind: LogLineSegmentKind::Context
                                         },
                                         LogLineSegment {
                                             text: Cow::Borrowed("SocketInputStream.java:116"),
@@ -664,7 +670,7 @@ mod tests {
                                         LogLineSegment {
                                             text: Cow::Borrowed("("),
                                             separator: Cow::Borrowed(""),
-                                            kind: LogLineSegmentKind::Introduced
+                                            kind: LogLineSegmentKind::Context
                                         },
                                         LogLineSegment {
                                             text: Cow::Borrowed("SocketInputStream.java:116"),
@@ -711,7 +717,7 @@ mod tests {
                                         LogLineSegment {
                                             text: Cow::Borrowed("("),
                                             separator: Cow::Borrowed(""),
-                                            kind: LogLineSegmentKind::Introduced
+                                            kind: LogLineSegmentKind::Context
                                         },
                                         LogLineSegment {
                                             text: Cow::Borrowed("SocketInputStream.java:171"),
@@ -748,12 +754,7 @@ mod tests {
                                         LogLineSegment {
                                             text: Cow::Borrowed("("),
                                             separator: Cow::Borrowed(""),
-                                            kind: LogLineSegmentKind::Introduced
-                                        },
-                                        LogLineSegment {
-                                            text: Cow::Borrowed("SocketInputStream.java:171"),
-                                            separator: Cow::Borrowed(")"),
-                                            kind: LogLineSegmentKind::Introduced
+                                            kind: LogLineSegmentKind::Context
                                         },
                                         LogLineSegment {
                                             text: Cow::Borrowed("…"),
@@ -761,8 +762,93 @@ mod tests {
                                             kind: LogLineSegmentKind::CollapsedBlockPlaceholder
                                         }
                                     ],
-                                    children: vec![],
-                                    children_collapsed_text: Cow::Borrowed("1 frames")
+                                    children: vec![
+                                        LogBlock {
+                                            text: Cow::Borrowed("at java.net.SocketInputStream.read(SocketInputStream.java:141)"),
+                                            line_segments: vec![
+                                                LogLineSegment {
+                                                    text: Cow::Borrowed("at"),
+                                                    separator: Cow::Borrowed(" "),
+                                                    kind: LogLineSegmentKind::Context
+                                                },
+                                                LogLineSegment {
+                                                    text: Cow::Borrowed("java"),
+                                                    separator: Cow::Borrowed("."),
+                                                    kind: LogLineSegmentKind::CommonWithParent
+                                                },
+                                                LogLineSegment {
+                                                    text: Cow::Borrowed("net"),
+                                                    separator: Cow::Borrowed("."),
+                                                    kind: LogLineSegmentKind::CommonWithParent
+                                                },
+                                                LogLineSegment {
+                                                    text: Cow::Borrowed("SocketInputStream"),
+                                                    separator: Cow::Borrowed("."),
+                                                    kind: LogLineSegmentKind::CommonWithParent
+                                                },
+                                                LogLineSegment {
+                                                    text: Cow::Borrowed("read"),
+                                                    separator: Cow::Borrowed(""),
+                                                    kind: LogLineSegmentKind::CommonWithParent
+                                                },
+                                                LogLineSegment {
+                                                    text: Cow::Borrowed("("),
+                                                    separator: Cow::Borrowed(""),
+                                                    kind: LogLineSegmentKind::Context
+                                                },
+                                                LogLineSegment {
+                                                    text: Cow::Borrowed("SocketInputStream.java:141"),
+                                                    separator: Cow::Borrowed(")"),
+                                                    kind: LogLineSegmentKind::Introduced
+                                                }
+                                            ],
+                                            line_segments_collapsed: vec![
+                                                LogLineSegment {
+                                                    text: Cow::Borrowed("at"),
+                                                    separator: Cow::Borrowed(" "),
+                                                    kind: LogLineSegmentKind::Context
+                                                },
+                                                LogLineSegment {
+                                                    text: Cow::Borrowed("java"),
+                                                    separator: Cow::Borrowed("."),
+                                                    kind: LogLineSegmentKind::CommonWithParent
+                                                },
+                                                LogLineSegment {
+                                                    text: Cow::Borrowed("net"),
+                                                    separator: Cow::Borrowed("."),
+                                                    kind: LogLineSegmentKind::CommonWithParent
+                                                },
+                                                LogLineSegment {
+                                                    text: Cow::Borrowed("SocketInputStream"),
+                                                    separator: Cow::Borrowed("."),
+                                                    kind: LogLineSegmentKind::CommonWithParent
+                                                },
+                                                LogLineSegment {
+                                                    text: Cow::Borrowed("read"),
+                                                    separator: Cow::Borrowed(""),
+                                                    kind: LogLineSegmentKind::CommonWithParent
+                                                },
+                                                LogLineSegment {
+                                                    text: Cow::Borrowed("("),
+                                                    separator: Cow::Borrowed(""),
+                                                    kind: LogLineSegmentKind::Context
+                                                },
+                                                LogLineSegment {
+                                                    text: Cow::Borrowed("SocketInputStream.java:141"),
+                                                    separator: Cow::Borrowed(")"),
+                                                    kind: LogLineSegmentKind::Introduced
+                                                },
+                                                LogLineSegment {
+                                                    text: Cow::Borrowed("…"),
+                                                    separator: Cow::Borrowed(""),
+                                                    kind: LogLineSegmentKind::CollapsedBlockPlaceholder
+                                                }
+                                            ],
+                                            children: vec![],
+                                            children_collapsed_text: Cow::Borrowed("1 frames")
+                                        },
+                                    ],
+                                    children_collapsed_text: Cow::Borrowed("2 frames")
                                 },
                                 LogBlock {
                                     text: Cow::Borrowed("at java.io.BufferedInputStream.fill(BufferedInputStream.java:246)"),
@@ -795,7 +881,7 @@ mod tests {
                                         LogLineSegment {
                                             text: Cow::Borrowed("("),
                                             separator: Cow::Borrowed(""),
-                                            kind: LogLineSegmentKind::Introduced
+                                            kind: LogLineSegmentKind::Context
                                         },
                                         LogLineSegment {
                                             text: Cow::Borrowed("BufferedInputStream.java:246"),
@@ -857,7 +943,7 @@ mod tests {
                                                 LogLineSegment {
                                                     text: Cow::Borrowed("("),
                                                     separator: Cow::Borrowed(""),
-                                                    kind: LogLineSegmentKind::Introduced
+                                                    kind: LogLineSegmentKind::Context
                                                 },
                                                 LogLineSegment {
                                                     text: Cow::Borrowed("BufferedInputStream.java:286"),
@@ -894,7 +980,7 @@ mod tests {
                                                 LogLineSegment {
                                                     text: Cow::Borrowed("("),
                                                     separator: Cow::Borrowed(""),
-                                                    kind: LogLineSegmentKind::Introduced
+                                                    kind: LogLineSegmentKind::Context
                                                 },
                                                 LogLineSegment {
                                                     text: Cow::Borrowed("BufferedInputStream.java:286"),
@@ -941,7 +1027,7 @@ mod tests {
                                                 LogLineSegment {
                                                     text: Cow::Borrowed("("),
                                                     separator: Cow::Borrowed(""),
-                                                    kind: LogLineSegmentKind::Introduced
+                                                    kind: LogLineSegmentKind::Context
                                                 },
                                                 LogLineSegment {
                                                     text: Cow::Borrowed("BufferedInputStream.java:345"),
@@ -978,7 +1064,7 @@ mod tests {
                                                 LogLineSegment {
                                                     text: Cow::Borrowed("("),
                                                     separator: Cow::Borrowed(""),
-                                                    kind: LogLineSegmentKind::Introduced
+                                                    kind: LogLineSegmentKind::Context
                                                 },
                                                 LogLineSegment {
                                                     text: Cow::Borrowed("BufferedInputStream.java:345"),
@@ -1025,7 +1111,7 @@ mod tests {
                                                 LogLineSegment {
                                                     text: Cow::Borrowed("("),
                                                     separator: Cow::Borrowed(""),
-                                                    kind: LogLineSegmentKind::Introduced
+                                                    kind: LogLineSegmentKind::Context
                                                 },
                                                 LogLineSegment {
                                                     text: Cow::Borrowed("DataInputStream.java:195"),
@@ -1062,7 +1148,7 @@ mod tests {
                                                 LogLineSegment {
                                                     text: Cow::Borrowed("("),
                                                     separator: Cow::Borrowed(""),
-                                                    kind: LogLineSegmentKind::Introduced
+                                                    kind: LogLineSegmentKind::Context
                                                 },
                                                 LogLineSegment {
                                                     text: Cow::Borrowed("DataInputStream.java:195"),
@@ -1082,7 +1168,7 @@ mod tests {
                                     children_collapsed_text: Cow::Borrowed("4 frames")
                                 }
                             ],
-                            children_collapsed_text: Cow::Borrowed("7 frames")
+                            children_collapsed_text: Cow::Borrowed("8 frames")
                         }
                     ],
                     children_collapsed_text: Cow::Borrowed("8 frames")
