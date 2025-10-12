@@ -17,6 +17,11 @@ use crate::{
 /// information displayed, hiding irrelevant information.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct LogBlock<'s> {
+    /// Nesting level of this block, `0` is a top level block.
+    ///
+    /// This allows styling to be applied to the block based on its nesting
+    /// level.
+    pub nesting_level: u8,
     /// Original text of this line, copied when the copy button is clicked.
     ///
     /// Usually this is one line. However, in the case of rust stack traces,
@@ -42,6 +47,7 @@ impl<'s> LogBlock<'s> {
     /// Returns a fully owned version of this [`LogBlock`].
     pub fn into_static(&self) -> LogBlock<'static> {
         LogBlock {
+            nesting_level: self.nesting_level,
             text: Cow::Owned(self.text.clone().into_owned()),
             line_segments: self
                 .line_segments

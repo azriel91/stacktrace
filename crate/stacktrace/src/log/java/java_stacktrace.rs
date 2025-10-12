@@ -40,6 +40,7 @@ impl<'s> JavaStacktrace<'s> {
 
         let mut log_blocks = Vec::new();
         let None = Self::log_block_partials_into_log_blocks(
+            1, // The exception is the root of the log block hierarchy, so frames start at 1.
             &mut log_blocks,
             None,
             &mut log_block_partials,
@@ -144,6 +145,7 @@ impl<'s> JavaStacktrace<'s> {
     /// though.
     #[must_use]
     fn log_block_partials_into_log_blocks(
+        nesting_level: u8,
         log_blocks: &mut Vec<LogBlock<'s>>,
         parent_line_segments: Option<&[LogLineSegment<'s>]>,
         log_block_partial_iter: &mut impl Iterator<Item = LogBlockPartial<'s>>,
@@ -161,6 +163,7 @@ impl<'s> JavaStacktrace<'s> {
                     // Recurse, because the next `LogBlockPartial` might be a child of this one.
                     let mut children = Vec::new();
                     let log_block_partial = Self::log_block_partials_into_log_blocks(
+                        nesting_level + 1,
                         &mut children,
                         Some(&line_segments),
                         log_block_partial_iter,
@@ -173,6 +176,7 @@ impl<'s> JavaStacktrace<'s> {
                         line_segments_collapsed_compute(&line_segments, &children);
 
                     let log_block = LogBlock {
+                        nesting_level,
                         text,
                         line_segments,
                         line_segments_collapsed,
@@ -258,6 +262,7 @@ impl<'s> JavaStacktrace<'s> {
 
                     // Recurse in case the next frame is a child.
                     let log_block_partial = Self::log_block_partials_into_log_blocks(
+                        nesting_level + 1,
                         &mut children,
                         Some(&line_segments),
                         log_block_partial_iter,
@@ -266,6 +271,7 @@ impl<'s> JavaStacktrace<'s> {
                     let (line_segments_collapsed, children_collapsed_text) =
                         line_segments_collapsed_compute(&line_segments, &children);
                     let log_block = LogBlock {
+                        nesting_level,
                         text,
                         line_segments,
                         line_segments_collapsed,
@@ -482,6 +488,7 @@ impl<'s> IntoLogBlock<'s> for JavaStacktrace<'s> {
         let children_collapsed_text = Cow::Owned(format!("{frame_count} frames"));
 
         LogBlock {
+            nesting_level: 0,
             text: header.full_text,
             line_segments,
             line_segments_collapsed,
@@ -529,6 +536,7 @@ mod tests {
                 let log_block_actual = java_stacktrace.into_log_block();
 
                 let log_block_expected = LogBlock {
+                    nesting_level: 0,
                     text: Cow::Borrowed("java.net.SocketTimeoutException: Read timed out"),
                     line_segments: vec![
                         LogLineSegment {
@@ -546,6 +554,7 @@ mod tests {
                     ],
                     children: vec![
                         LogBlock {
+                            nesting_level: 1,
                             text: Cow::Borrowed("at java.net.SocketInputStream.socketRead0(Native Method)"),
                             line_segments: vec![
                                 LogLineSegment {
@@ -603,6 +612,7 @@ mod tests {
                             ],
                             children: vec![
                                 LogBlock {
+                                    nesting_level: 2,
                                     text: Cow::Borrowed("at java.net.SocketInputStream.socketRead(SocketInputStream.java:116)"),
                                     line_segments: vec![
                                         LogLineSegment {
@@ -687,6 +697,7 @@ mod tests {
                                     children_collapsed_text: Cow::Borrowed("1 frames")
                                 },
                                 LogBlock {
+                                    nesting_level: 2,
                                     text: Cow::Borrowed("at java.net.SocketInputStream.read(SocketInputStream.java:171)"),
                                     line_segments: vec![
                                         LogLineSegment {
@@ -764,6 +775,7 @@ mod tests {
                                     ],
                                     children: vec![
                                         LogBlock {
+                                            nesting_level: 3,
                                             text: Cow::Borrowed("at java.net.SocketInputStream.read(SocketInputStream.java:141)"),
                                             line_segments: vec![
                                                 LogLineSegment {
@@ -851,6 +863,7 @@ mod tests {
                                     children_collapsed_text: Cow::Borrowed("2 frames")
                                 },
                                 LogBlock {
+                                    nesting_level: 2,
                                     text: Cow::Borrowed("at java.io.BufferedInputStream.fill(BufferedInputStream.java:246)"),
                                     line_segments: vec![
                                         LogLineSegment {
@@ -913,6 +926,7 @@ mod tests {
                                     ],
                                     children: vec![
                                         LogBlock {
+                                            nesting_level: 3,
                                             text: Cow::Borrowed("at java.io.BufferedInputStream.read1(BufferedInputStream.java:286)"),
                                             line_segments: vec![
                                                 LogLineSegment {
@@ -997,6 +1011,7 @@ mod tests {
                                             children_collapsed_text: Cow::Borrowed("1 frames")
                                         },
                                         LogBlock {
+                                            nesting_level: 3,
                                             text: Cow::Borrowed("at java.io.BufferedInputStream.read(BufferedInputStream.java:345)"),
                                             line_segments: vec![
                                                 LogLineSegment {
@@ -1081,6 +1096,7 @@ mod tests {
                                             children_collapsed_text: Cow::Borrowed("1 frames")
                                         },
                                         LogBlock {
+                                            nesting_level: 3,
                                             text: Cow::Borrowed("at java.io.DataInputStream.readFully(DataInputStream.java:195)"),
                                             line_segments: vec![
                                                 LogLineSegment {
