@@ -70,9 +70,9 @@ pub fn LogBlockDiv(
         })
     } else {
         let classes = match log_block.nesting_level {
-            // On second level blocks, cycle through background colours.
+            // On second level blocks, cycle through background colours based on their group number.
             1 => {
-                let bg_colour = BLOCK_BG_COLOURS[block_index % BLOCK_BG_COLOURS.len()];
+                let bg_colour = BLOCK_BG_COLOURS[log_block.group_number.try_into().unwrap_or(block_index) % BLOCK_BG_COLOURS.len()];
                 Cow::Owned(format!("{BLOCK_CLASSES} {bg_colour}"))
             }
             _ => Cow::Borrowed(BLOCK_CLASSES),

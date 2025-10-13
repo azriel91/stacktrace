@@ -22,6 +22,17 @@ pub struct LogBlock<'s> {
     /// This allows styling to be applied to the block based on its nesting
     /// level.
     pub nesting_level: u8,
+
+    /// Number assigned to this block so that different blocks with the same
+    /// group number can be styled with the same background colour.
+    ///
+    /// This will allow users to visually see which code blocks are related to
+    /// each other.
+    ///
+    /// Blocks with the same `(nesting_level, group_number)` values should have
+    /// the same background colour.
+    pub group_number: u32,
+
     /// Original text of this line, copied when the copy button is clicked.
     ///
     /// Usually this is one line. However, in the case of rust stack traces,
@@ -48,6 +59,7 @@ impl<'s> LogBlock<'s> {
     pub fn into_static(&self) -> LogBlock<'static> {
         LogBlock {
             nesting_level: self.nesting_level,
+            group_number: self.group_number,
             text: Cow::Owned(self.text.clone().into_owned()),
             line_segments: self
                 .line_segments

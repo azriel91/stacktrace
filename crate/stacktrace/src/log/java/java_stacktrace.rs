@@ -1,4 +1,4 @@
-use std::{borrow::Cow, cmp::Ordering};
+use std::{borrow::Cow, cmp::Ordering, collections::HashMap};
 
 use pest::iterators::Pair;
 
@@ -37,10 +37,12 @@ impl<'s> JavaStacktrace<'s> {
     /// `log_block_partials_into_log_blocks` method.
     fn frames_into_log_blocks(frames: Vec<JavaStacktraceFrame<'s>>) -> Vec<LogBlock<'s>> {
         let mut log_block_partials = frames.into_iter().map(LogBlockPartial::from);
+        let mut nesting_level_to_prefix_to_group_numbers = HashMap::new();
 
         let mut log_blocks = Vec::new();
         let None = Self::log_block_partials_into_log_blocks(
             1, // The exception is the root of the log block hierarchy, so frames start at 1.
+            &mut nesting_level_to_prefix_to_group_numbers,
             &mut log_blocks,
             None,
             &mut log_block_partials,
@@ -143,9 +145,14 @@ impl<'s> JavaStacktrace<'s> {
     /// Possibly not -- it may be a "surprise" to the user.
     /// It could make sense for the `line_segments_collapsed`
     /// though.
+    ///
+    /// The `nesting_level_to_prefix_to_group_numbers` tracks the line segments
+    /// at each nesting level, which is mapped to a group number so different
+    /// log blocks with the same key can have the same group number.
     #[must_use]
     fn log_block_partials_into_log_blocks(
         nesting_level: u8,
+        nesting_level_to_prefix_to_group_numbers: &mut HashMap<u8, HashMap<Vec<Cow<'s, str>>, u32>>,
         log_blocks: &mut Vec<LogBlock<'s>>,
         parent_line_segments: Option<&[LogLineSegment<'s>]>,
         log_block_partial_iter: &mut impl Iterator<Item = LogBlockPartial<'s>>,
@@ -164,6 +171,7 @@ impl<'s> JavaStacktrace<'s> {
                     let mut children = Vec::new();
                     let log_block_partial = Self::log_block_partials_into_log_blocks(
                         nesting_level + 1,
+                        nesting_level_to_prefix_to_group_numbers,
                         &mut children,
                         Some(&line_segments),
                         log_block_partial_iter,
@@ -175,8 +183,15 @@ impl<'s> JavaStacktrace<'s> {
                     let (line_segments_collapsed, children_collapsed_text) =
                         line_segments_collapsed_compute(&line_segments, &children);
 
+                    let group_number = Self::group_number_compute(
+                        nesting_level,
+                        nesting_level_to_prefix_to_group_numbers,
+                        &line_segments_collapsed,
+                    );
+
                     let log_block = LogBlock {
                         nesting_level,
+                        group_number,
                         text,
                         line_segments,
                         line_segments_collapsed,
@@ -263,6 +278,7 @@ impl<'s> JavaStacktrace<'s> {
                     // Recurse in case the next frame is a child.
                     let log_block_partial = Self::log_block_partials_into_log_blocks(
                         nesting_level + 1,
+                        nesting_level_to_prefix_to_group_numbers,
                         &mut children,
                         Some(&line_segments),
                         log_block_partial_iter,
@@ -270,8 +286,16 @@ impl<'s> JavaStacktrace<'s> {
 
                     let (line_segments_collapsed, children_collapsed_text) =
                         line_segments_collapsed_compute(&line_segments, &children);
+
+                    let group_number = Self::group_number_compute(
+                        nesting_level,
+                        nesting_level_to_prefix_to_group_numbers,
+                        &line_segments_collapsed,
+                    );
+
                     let log_block = LogBlock {
                         nesting_level,
+                        group_number,
                         text,
                         line_segments,
                         line_segments_collapsed,
@@ -398,6 +422,30 @@ impl<'s> JavaStacktrace<'s> {
             }
         }
     }
+
+    /// Returns the group number to use at the given nesting level with the
+    /// given prefix.
+    fn group_number_compute(
+        nesting_level: u8,
+        nesting_level_to_prefix_to_group_numbers: &mut HashMap<u8, HashMap<Vec<Cow<'s, str>>, u32>>,
+        line_segments_collapsed: &Vec<LogLineSegment<'s>>,
+    ) -> u32 {
+        let prefix_to_group_numbers = nesting_level_to_prefix_to_group_numbers
+            .entry(nesting_level)
+            .or_insert_with(HashMap::new);
+        let prefix = line_segments_collapsed.iter().fold(
+            Vec::with_capacity(line_segments_collapsed.len()),
+            |mut prefix, segment| {
+                prefix.push(segment.text.clone());
+                prefix
+            },
+        );
+        let group_number_next = prefix_to_group_numbers.len().try_into().unwrap_or(0);
+        let group_number = *prefix_to_group_numbers
+            .entry(prefix)
+            .or_insert(group_number_next);
+        group_number
+    }
 }
 
 fn line_segments_collapsed_compute<'f, 's>(
@@ -489,6 +537,7 @@ impl<'s> IntoLogBlock<'s> for JavaStacktrace<'s> {
 
         LogBlock {
             nesting_level: 0,
+            group_number: 0,
             text: header.full_text,
             line_segments,
             line_segments_collapsed,
@@ -537,6 +586,7 @@ mod tests {
 
                 let log_block_expected = LogBlock {
                     nesting_level: 0,
+                    group_number: 0,
                     text: Cow::Borrowed("java.net.SocketTimeoutException: Read timed out"),
                     line_segments: vec![
                         LogLineSegment {
@@ -555,6 +605,7 @@ mod tests {
                     children: vec![
                         LogBlock {
                             nesting_level: 1,
+                            group_number: 0,
                             text: Cow::Borrowed("at java.net.SocketInputStream.socketRead0(Native Method)"),
                             line_segments: vec![
                                 LogLineSegment {
@@ -613,6 +664,7 @@ mod tests {
                             children: vec![
                                 LogBlock {
                                     nesting_level: 2,
+                                    group_number: 0,
                                     text: Cow::Borrowed("at java.net.SocketInputStream.socketRead(SocketInputStream.java:116)"),
                                     line_segments: vec![
                                         LogLineSegment {
@@ -698,6 +750,7 @@ mod tests {
                                 },
                                 LogBlock {
                                     nesting_level: 2,
+                                    group_number: 1,
                                     text: Cow::Borrowed("at java.net.SocketInputStream.read(SocketInputStream.java:171)"),
                                     line_segments: vec![
                                         LogLineSegment {
@@ -776,6 +829,7 @@ mod tests {
                                     children: vec![
                                         LogBlock {
                                             nesting_level: 3,
+                                            group_number: 0,
                                             text: Cow::Borrowed("at java.net.SocketInputStream.read(SocketInputStream.java:141)"),
                                             line_segments: vec![
                                                 LogLineSegment {
@@ -864,6 +918,7 @@ mod tests {
                                 },
                                 LogBlock {
                                     nesting_level: 2,
+                                    group_number: 2,
                                     text: Cow::Borrowed("at java.io.BufferedInputStream.fill(BufferedInputStream.java:246)"),
                                     line_segments: vec![
                                         LogLineSegment {
@@ -927,6 +982,7 @@ mod tests {
                                     children: vec![
                                         LogBlock {
                                             nesting_level: 3,
+                                            group_number: 1,
                                             text: Cow::Borrowed("at java.io.BufferedInputStream.read1(BufferedInputStream.java:286)"),
                                             line_segments: vec![
                                                 LogLineSegment {
@@ -1012,6 +1068,7 @@ mod tests {
                                         },
                                         LogBlock {
                                             nesting_level: 3,
+                                            group_number: 2,
                                             text: Cow::Borrowed("at java.io.BufferedInputStream.read(BufferedInputStream.java:345)"),
                                             line_segments: vec![
                                                 LogLineSegment {
@@ -1097,6 +1154,7 @@ mod tests {
                                         },
                                         LogBlock {
                                             nesting_level: 3,
+                                            group_number: 3,
                                             text: Cow::Borrowed("at java.io.DataInputStream.readFully(DataInputStream.java:195)"),
                                             line_segments: vec![
                                                 LogLineSegment {
