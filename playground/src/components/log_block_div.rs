@@ -50,14 +50,11 @@ pub fn LogBlockDiv(
         log_block.nesting_level < 2;
     let (expanded, expanded_set) = leptos::prelude::signal(expanded_initially);
     if log_block.children.is_empty() {
-        let classes = match log_block.nesting_level {
-            // On second level blocks, cycle through background colours.
-            1 => {
-                let bg_colour = BLOCK_BG_COLOURS[block_index % BLOCK_BG_COLOURS.len()];
-                Cow::Owned(format!("{LINE_CLASSES} {bg_colour}"))
-            }
-            _ => Cow::Borrowed(LINE_CLASSES),
-        };
+        let classes = first_line_css_classes(
+            LINE_CLASSES,
+            &log_block,
+            block_index,
+        );
         Either::Left(view! {
             <div class=classes>
                 <LogLineSegmentsDiv
@@ -69,14 +66,11 @@ pub fn LogBlockDiv(
             </div>
         })
     } else {
-        let classes = match log_block.nesting_level {
-            // On second level blocks, cycle through background colours based on their group number.
-            1 => {
-                let bg_colour = BLOCK_BG_COLOURS[log_block.group_number.try_into().unwrap_or(block_index) % BLOCK_BG_COLOURS.len()];
-                Cow::Owned(format!("{BLOCK_CLASSES} {bg_colour}"))
-            }
-            _ => Cow::Borrowed(BLOCK_CLASSES),
-        };
+        let classes = first_line_css_classes(
+            BLOCK_CLASSES,
+            &log_block,
+            block_index,
+        );
         Either::Right(view! {
             <div class="py-1 rounded">
                 <details
@@ -104,4 +98,21 @@ pub fn LogBlockDiv(
         })
     }
     .into_any()
+}
+
+/// Returns the CSS classes for the first line of a log block.
+fn first_line_css_classes(
+    base_classes: &'static str,
+    log_block: &LogBlock<'static>,
+    block_index: usize,
+) -> Cow<'static, str> {
+    match log_block.nesting_level {
+        // On second level blocks, cycle through background colours.
+        1 => {
+            let bg_colour = BLOCK_BG_COLOURS
+                [log_block.group_number.try_into().unwrap_or(block_index) % BLOCK_BG_COLOURS.len()];
+            Cow::Owned(format!("{base_classes} {bg_colour}"))
+        }
+        _ => Cow::Borrowed(base_classes),
+    }
 }

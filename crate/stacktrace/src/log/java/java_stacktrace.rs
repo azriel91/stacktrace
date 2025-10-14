@@ -425,15 +425,23 @@ impl<'s> JavaStacktrace<'s> {
     /// given prefix.
     fn group_number_compute(
         prefix_to_group_numbers: &mut HashMap<Vec<Cow<'s, str>>, u32>,
-        line_segments_collapsed: &Vec<LogLineSegment<'s>>,
+        line_segments_collapsed: &[LogLineSegment<'s>],
     ) -> u32 {
-        let prefix = line_segments_collapsed.iter().fold(
-            Vec::with_capacity(line_segments_collapsed.len()),
-            |mut prefix, segment| {
-                prefix.push(segment.text.clone());
-                prefix
-            },
-        );
+        let prefix = line_segments_collapsed
+            .iter()
+            // Ignore "at" etc.
+            .skip_while(|line_segment| line_segment.kind == LogLineSegmentKind::Context)
+            // For Java stacktraces, the first two segments after the context are usually the
+            // package name that identifies a library that we should group by. Sometimes
+            // we should take 3 package segments though.
+            .take(2)
+            .fold(
+                Vec::with_capacity(line_segments_collapsed.len()),
+                |mut prefix, segment| {
+                    prefix.push(segment.text.clone());
+                    prefix
+                },
+            );
         let group_number_next = prefix_to_group_numbers.len().try_into().unwrap_or(0);
         let group_number = *prefix_to_group_numbers
             .entry(prefix)
@@ -599,7 +607,7 @@ mod tests {
                     children: vec![
                         LogBlock {
                             nesting_level: 1,
-                            group_number: 7,
+                            group_number: 2,
                             text: Cow::Borrowed("at java.net.SocketInputStream.socketRead0(Native Method)"),
                             line_segments: vec![
                                 LogLineSegment {
@@ -744,7 +752,7 @@ mod tests {
                                 },
                                 LogBlock {
                                     nesting_level: 2,
-                                    group_number: 2,
+                                    group_number: 0,
                                     text: Cow::Borrowed("at java.net.SocketInputStream.read(SocketInputStream.java:171)"),
                                     line_segments: vec![
                                         LogLineSegment {
@@ -823,7 +831,7 @@ mod tests {
                                     children: vec![
                                         LogBlock {
                                             nesting_level: 3,
-                                            group_number: 1,
+                                            group_number: 0,
                                             text: Cow::Borrowed("at java.net.SocketInputStream.read(SocketInputStream.java:141)"),
                                             line_segments: vec![
                                                 LogLineSegment {
@@ -912,7 +920,7 @@ mod tests {
                                 },
                                 LogBlock {
                                     nesting_level: 2,
-                                    group_number: 6,
+                                    group_number: 1,
                                     text: Cow::Borrowed("at java.io.BufferedInputStream.fill(BufferedInputStream.java:246)"),
                                     line_segments: vec![
                                         LogLineSegment {
@@ -976,7 +984,7 @@ mod tests {
                                     children: vec![
                                         LogBlock {
                                             nesting_level: 3,
-                                            group_number: 3,
+                                            group_number: 1,
                                             text: Cow::Borrowed("at java.io.BufferedInputStream.read1(BufferedInputStream.java:286)"),
                                             line_segments: vec![
                                                 LogLineSegment {
@@ -1062,7 +1070,7 @@ mod tests {
                                         },
                                         LogBlock {
                                             nesting_level: 3,
-                                            group_number: 4,
+                                            group_number: 1,
                                             text: Cow::Borrowed("at java.io.BufferedInputStream.read(BufferedInputStream.java:345)"),
                                             line_segments: vec![
                                                 LogLineSegment {
@@ -1148,7 +1156,7 @@ mod tests {
                                         },
                                         LogBlock {
                                             nesting_level: 3,
-                                            group_number: 5,
+                                            group_number: 1,
                                             text: Cow::Borrowed("at java.io.DataInputStream.readFully(DataInputStream.java:195)"),
                                             line_segments: vec![
                                                 LogLineSegment {
