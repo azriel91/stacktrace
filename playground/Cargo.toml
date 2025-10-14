@@ -19,6 +19,7 @@ crate-type = ["cdylib"] # no "rlib" because that prevents trunk from building
 [dependencies]
 axum = { workspace = true, optional = true }
 console_error_panic_hook = { workspace = true }
+constcat = { workspace = true }
 http = { workspace = true }
 leptos = { workspace = true }
 leptos_axum = { workspace = true, optional = true }

@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use leptos::{
     component,
     either::Either,
@@ -9,9 +11,12 @@ use stacktrace::sem_log::LogBlock;
 use crate::components::LogLineSegmentsDiv;
 
 const LINE_CLASSES: &str = "\
-    hover:bg-gray-600 \
+    border \
+    border-transparent \
+    hover:border-blue-400 \
+    px-2 \
     py-1 \
-    rounded \
+    rounded-lg \
 ";
 
 /// Multiple `hover:open` selectors so that we only highlight the border if
@@ -26,13 +31,32 @@ const BLOCK_CLASSES: &str = "\
     hover:open:has-[:hover:open]:border-blue-400 \
 ";
 
+const BLOCK_BG_COLOURS: [&str; 6] = [
+    "bg-teal-950",
+    "bg-sky-950",
+    "bg-blue-950",
+    "bg-indigo-950",
+    "bg-violet-950",
+    "bg-purple-950",
+];
+
 #[component]
-pub fn LogBlockDiv(log_block: LogBlock<'static>) -> impl IntoView {
-    let expanded_initially = log_block.children.is_empty();
+pub fn LogBlockDiv(
+    log_block: LogBlock<'static>,
+    #[prop(optional)] block_index: usize,
+) -> impl IntoView {
+    let expanded_initially = log_block.children.is_empty() ||
+        // expand the first two levels
+        log_block.nesting_level < 2;
     let (expanded, expanded_set) = leptos::prelude::signal(expanded_initially);
     if log_block.children.is_empty() {
+        let classes = first_line_css_classes(
+            LINE_CLASSES,
+            &log_block,
+            block_index,
+        );
         Either::Left(view! {
-            <div class=LINE_CLASSES>
+            <div class=classes>
                 <LogLineSegmentsDiv
                     expanded
                     line_segments={log_block.line_segments.clone()}
@@ -42,12 +66,17 @@ pub fn LogBlockDiv(log_block: LogBlock<'static>) -> impl IntoView {
             </div>
         })
     } else {
+        let classes = first_line_css_classes(
+            BLOCK_CLASSES,
+            &log_block,
+            block_index,
+        );
         Either::Right(view! {
             <div class="py-1 rounded">
                 <details
                     open={move || expanded.get()}
                     on:toggle=move |event| *expanded_set.write() = event.new_state() == "open"
-                    class=BLOCK_CLASSES
+                    class=classes
                 >
                     <summary class=LINE_CLASSES>
                         <LogLineSegmentsDiv
@@ -59,9 +88,9 @@ pub fn LogBlockDiv(log_block: LogBlock<'static>) -> impl IntoView {
                     </summary>
                     <div>
                         <For
-                            each=move || log_block.children.clone()
-                            key=LogBlock::hash_with_default_hasher
-                            children=|log_block| view! { <LogBlockDiv log_block /> }
+                            each=move || log_block.children.clone().into_iter().enumerate()
+                            key=|(_index, log_block)| log_block.hash_with_default_hasher()
+                            children=|(block_index, log_block)| view! { <LogBlockDiv log_block block_index /> }
                         />
                     </div>
                 </details>
@@ -69,4 +98,21 @@ pub fn LogBlockDiv(log_block: LogBlock<'static>) -> impl IntoView {
         })
     }
     .into_any()
+}
+
+/// Returns the CSS classes for the first line of a log block.
+fn first_line_css_classes(
+    base_classes: &'static str,
+    log_block: &LogBlock<'static>,
+    block_index: usize,
+) -> Cow<'static, str> {
+    match log_block.nesting_level {
+        // On second level blocks, cycle through background colours.
+        1 => {
+            let bg_colour = BLOCK_BG_COLOURS
+                [log_block.group_number.try_into().unwrap_or(block_index) % BLOCK_BG_COLOURS.len()];
+            Cow::Owned(format!("{base_classes} {bg_colour}"))
+        }
+        _ => Cow::Borrowed(base_classes),
+    }
 }

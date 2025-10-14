@@ -2,16 +2,17 @@
 ///
 /// <https://pest.rs/book/grammars/syntax.html#predicates>
 // ANY_NOT_NEWLINE = ${ ASCII_ALPHANUMERIC | LETTER | MARK | NUMBER | PUNCTUATION | SYMBOL }
-ANY_NOT_NEWLINE                  = ${ !NEWLINE ~ ANY }
-ALPHA_OR_UNDERSCORE              =  { ASCII_ALPHA | "_" }
-ALPHANUMERIC_OR_UNDERSCORE       =  { ASCII_ALPHA | ASCII_DIGIT | "_" }
-ALPHA_LOWER_OR_UNDERSCORE        =  { ASCII_ALPHA_LOWER | "_" }
-ALPHANUMERIC_LOWER_OR_UNDERSCORE =  { ASCII_ALPHA_LOWER | ASCII_DIGIT | "_" }
+ANY_NOT_NEWLINE                   = ${ !NEWLINE ~ ANY }
+ALPHA_OR_UNDERSCORE               =  { ASCII_ALPHA | "_" }
+ALPHANUMERIC_DOLLAR_OR_UNDERSCORE =  { ASCII_ALPHA | ASCII_DIGIT | "$" | "_" }
 
 // Constants so that we don't duplicate static strings in code.
-CAUSED_BY           = { "Caused by:" }
-EXCEPTION_IN_THREAD = { "Exception in thread" }
-CONST_NATIVE_METHOD = { "Native Method" }
+CAUSED_BY            = { "Caused by:" }
+EXCEPTION_IN_THREAD  = { "Exception in thread" }
+CONST_NATIVE_METHOD  = { "Native Method" }
+CONST_UNKNOWN_SOURCE = { "Unknown Source" }
+CONST_ANGLE_OPEN     = { "<" }
+CONST_ANGLE_CLOSE    = { ">" }
 
 // Leading `_` means a silent rule:
 // <https://pest.rs/book/grammars/syntax.html#silent-and-atomic-rules>
@@ -41,17 +42,12 @@ FilePathSegment   = ${ (ASCII_ALPHANUMERIC | FilePathSymChars) ~ (ASCII_ALPHANUM
 LineNumber        =  { ASCII_DIGIT+ }
 
 JavaStacktrace                =  { JavaStacktraceHeader ~ JavaStacktraceFrame+ }
-JavaStacktraceHeader          =  { (JavaStacktraceHeaderThread | CAUSED_BY)? ~ JavaStacktraceHeaderException ~ ":" ~ JavaStacktraceHeaderMessage }
+JavaStacktraceHeader          =  { (JavaStacktraceHeaderThread | CAUSED_BY)? ~ JavaStacktraceHeaderException ~ JavaStacktraceHeaderMessage? }
 JavaStacktraceHeaderThread    =  { EXCEPTION_IN_THREAD ~ JavaThreadName }
-JavaStacktraceHeaderException =  { JavaClassNameQualified }
+JavaStacktraceHeaderException =  { JavaQualifiedReference }
 JavaStacktraceHeaderMessage   = ${ ANY_NOT_NEWLINE* }
-JavaStacktraceFrame           =  { "at" ~ JavaClassNameQualified ~ "." ~ JavaMethodName ~ "(" ~ (FilePathAndLine | CONST_NATIVE_METHOD) ~ ")" }
-JavaClassNameQualified        = ${ JavaPackage ~ "." ~ JavaClassNameSimple }
-JavaClassNameSimple           = ${ JavaClassNameSegment ~ ("$" ~ JavaClassNameSegment)* }
-JavaClassNameSegment          =  { UPPERCASE_LETTER ~ (ASCII_ALPHANUMERIC | "_")* }
-JavaPackage                   = ${ JavaPackageSegment ~ ("." ~ JavaPackageSegment)* }
-JavaPackageSegment            =  { JavaIdentifierLower }
-JavaMethodName                =  { JavaIdentifier }
+JavaStacktraceFrame           =  { "at" ~ JavaQualifiedReference ~ "(" ~ (FilePathAndLine | CONST_NATIVE_METHOD | CONST_UNKNOWN_SOURCE) ~ ")" }
+JavaQualifiedReference        = ${ JavaMixedIdentifier ~ ("." ~ JavaMixedIdentifier)* }
 JavaThreadName                =  { "\"" ~ (!"\"" ~ ANY)+ ~ "\"" }
-JavaIdentifier                = ${ ALPHA_OR_UNDERSCORE ~ ALPHANUMERIC_OR_UNDERSCORE* }
-JavaIdentifierLower           = ${ ALPHA_LOWER_OR_UNDERSCORE ~ ALPHANUMERIC_LOWER_OR_UNDERSCORE* }
+JavaMixedIdentifier           = ${ CONST_ANGLE_OPEN? ~ JavaIdentifier ~ CONST_ANGLE_CLOSE? }
+JavaIdentifier                = ${ ALPHA_OR_UNDERSCORE ~ ALPHANUMERIC_DOLLAR_OR_UNDERSCORE* }

@@ -32,10 +32,8 @@ pub struct JavaStacktraceHeader<'s> {
     pub caused_by: Option<Cow<'s, str>>,
     /// The `com.example.stacktrace.Example$Exception` text.
     pub exception: JavaStacktraceHeaderException<'s>,
-    /// The `:` text.
-    pub colon: Cow<'s, str>,
-    /// The `foo` text.
-    pub message: JavaStacktraceHeaderMessage<'s>,
+    /// The `": foo"` text, if any.
+    pub message: Option<JavaStacktraceHeaderMessage<'s>>,
 }
 
 impl<'s> From<Pair<'s, Rule>> for JavaStacktraceHeader<'s> {
@@ -67,7 +65,11 @@ impl<'s> From<Pair<'s, Rule>> for JavaStacktraceHeader<'s> {
                         }
                         Rule::JavaStacktraceHeaderMessage => {
                             let message_pair = java_stacktrace_header_pair_inner;
-                            message = Some(JavaStacktraceHeaderMessage::from(message_pair));
+                            message = if message_pair.as_str().is_empty() {
+                                None
+                            } else {
+                                Some(JavaStacktraceHeaderMessage::from(message_pair))
+                            };
 
                             (thread, caused_by, exception, message)
                         }
@@ -78,15 +80,12 @@ impl<'s> From<Pair<'s, Rule>> for JavaStacktraceHeader<'s> {
 
         let exception =
             exception.expect("Expected `JavaStacktraceHeaderException` to exist after parsing.");
-        let message =
-            message.expect("Expected `JavaStacktraceHeaderMessage` to exist after parsing.");
 
         Self {
             full_text,
             thread,
             caused_by,
             exception,
-            colon: Cow::Borrowed(":"),
             message,
         }
     }
@@ -100,9 +99,9 @@ mod tests {
 
     use crate::{
         log::java::{
-            JavaClassNameQualified, JavaClassNameSegment, JavaClassNameSimple, JavaIdentifierLower,
-            JavaPackage, JavaPackageSegment, JavaStacktraceHeader, JavaStacktraceHeaderException,
-            JavaStacktraceHeaderMessage, JavaStacktraceHeaderThread, JavaThreadName,
+            JavaIdentifier, JavaMixedIdentifier, JavaQualifiedReference, JavaStacktraceHeader,
+            JavaStacktraceHeaderException, JavaStacktraceHeaderMessage, JavaStacktraceHeaderThread,
+            JavaThreadName,
         },
         log_parser::Rule,
         LogParser,
@@ -130,35 +129,95 @@ mod tests {
                     }),
                     caused_by: None,
                     exception: JavaStacktraceHeaderException {
-                        class_name: JavaClassNameQualified {
+                        class_name: JavaQualifiedReference {
                             full_text: Cow::Borrowed("java.lang.IllegalArgumentException"),
-                            package: JavaPackage {
-                                full_text: Cow::Borrowed("java.lang"),
-                                segments: vec![
-                                    JavaPackageSegment {
-                                        identifier: JavaIdentifierLower {
-                                            text: Cow::Borrowed("java"),
-                                        },
+                            segments: vec![
+                                JavaMixedIdentifier {
+                                    full_text: Cow::Borrowed("java"),
+                                    angle_open: Cow::Borrowed(""),
+                                    identifier: JavaIdentifier {
+                                        text: Cow::Borrowed("java"),
                                     },
-                                    JavaPackageSegment {
-                                        identifier: JavaIdentifierLower {
-                                            text: Cow::Borrowed("lang"),
-                                        },
+                                    angle_close: Cow::Borrowed(""),
+                                },
+                                JavaMixedIdentifier {
+                                    full_text: Cow::Borrowed("lang"),
+                                    angle_open: Cow::Borrowed(""),
+                                    identifier: JavaIdentifier {
+                                        text: Cow::Borrowed("lang"),
                                     },
-                                ],
-                            },
-                            class_name_simple: JavaClassNameSimple {
-                                full_text: Cow::Borrowed("IllegalArgumentException"),
-                                segments: vec![JavaClassNameSegment {
-                                    text: Cow::Borrowed("IllegalArgumentException"),
-                                }],
-                            },
+                                    angle_close: Cow::Borrowed(""),
+                                },
+                                JavaMixedIdentifier {
+                                    full_text: Cow::Borrowed("IllegalArgumentException"),
+                                    angle_open: Cow::Borrowed(""),
+                                    identifier: JavaIdentifier {
+                                        text: Cow::Borrowed("IllegalArgumentException"),
+                                    },
+                                    angle_close: Cow::Borrowed(""),
+                                },
+                            ],
                         },
                     },
-                    colon: Cow::Borrowed(":"),
-                    message: JavaStacktraceHeaderMessage {
-                        text: Cow::Borrowed("foo"),
+                    message: Some(JavaStacktraceHeaderMessage {
+                        text: Cow::Borrowed(": foo"),
+                    }),
+                };
+                assert_eq!(java_stacktrace_header_expected, java_stacktrace_header);
+            }
+            Err(e) => {
+                eprintln!("Failed to parse `JavaStacktraceHeader`: {}", e);
+                Err(e).unwrap()
+            }
+        }
+    }
+
+    #[test]
+    fn parse_java_stacktrace_header_without_message() {
+        let s = r#"java.lang.IllegalArgumentException"#;
+        match LogParser::parse(Rule::JavaStacktraceHeader, s) {
+            Ok(mut java_stacktrace_header_pairs) => {
+                let java_stacktrace_header_pair = java_stacktrace_header_pairs
+                    .next()
+                    .expect("Expected one pair for `JavaStacktraceHeader`.");
+                let java_stacktrace_header =
+                    JavaStacktraceHeader::from(java_stacktrace_header_pair);
+                let java_stacktrace_header_expected = JavaStacktraceHeader {
+                    full_text: Cow::Borrowed("java.lang.IllegalArgumentException"),
+                    thread: None,
+                    caused_by: None,
+                    exception: JavaStacktraceHeaderException {
+                        class_name: JavaQualifiedReference {
+                            full_text: Cow::Borrowed("java.lang.IllegalArgumentException"),
+                            segments: vec![
+                                JavaMixedIdentifier {
+                                    full_text: Cow::Borrowed("java"),
+                                    angle_open: Cow::Borrowed(""),
+                                    identifier: JavaIdentifier {
+                                        text: Cow::Borrowed("java"),
+                                    },
+                                    angle_close: Cow::Borrowed(""),
+                                },
+                                JavaMixedIdentifier {
+                                    full_text: Cow::Borrowed("lang"),
+                                    angle_open: Cow::Borrowed(""),
+                                    identifier: JavaIdentifier {
+                                        text: Cow::Borrowed("lang"),
+                                    },
+                                    angle_close: Cow::Borrowed(""),
+                                },
+                                JavaMixedIdentifier {
+                                    full_text: Cow::Borrowed("IllegalArgumentException"),
+                                    angle_open: Cow::Borrowed(""),
+                                    identifier: JavaIdentifier {
+                                        text: Cow::Borrowed("IllegalArgumentException"),
+                                    },
+                                    angle_close: Cow::Borrowed(""),
+                                },
+                            ],
+                        },
                     },
+                    message: None,
                 };
                 assert_eq!(java_stacktrace_header_expected, java_stacktrace_header);
             }

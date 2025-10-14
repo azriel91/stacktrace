@@ -26,6 +26,7 @@ stacktrace = { path = "crate/stacktrace", version = "0.1.0" }
 # external crates
 axum = "0.8"
 console_error_panic_hook = "0.1"
+constcat = "0.6.1"
 flat_string = "1.0.1"
 http = "1"
 leptos = "0.8.10"

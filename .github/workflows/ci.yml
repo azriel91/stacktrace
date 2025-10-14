@@ -226,7 +226,7 @@ jobs:
         id: cargo_leptos_cache_restore
         uses: actions/cache/restore@v4
         with:
-          path: ~/.cargo/bin/cargo-leptos
+          path: 'C:\Users\runneradmin\.cargo\bin\cargo-leptos.exe'
           key: ${{ runner.os }}-cargo-leptos
 
       - run: cargo install cargo-leptos

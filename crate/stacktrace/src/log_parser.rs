@@ -49,17 +49,15 @@ mod tests {
         file::{FilePath, FilePathAndLine},
         log::{
             java::{
-                JavaClassNameQualified, JavaClassNameSegment, JavaClassNameSimple, JavaIdentifier,
-                JavaIdentifierLower, JavaMethodName, JavaPackage, JavaPackageSegment,
-                JavaStacktrace, JavaStacktraceFrame, JavaStacktraceFrameSource,
-                JavaStacktraceHeader, JavaStacktraceHeaderException, JavaStacktraceHeaderMessage,
+                JavaIdentifier, JavaMixedIdentifier, JavaQualifiedReference, JavaStacktrace,
+                JavaStacktraceFrame, JavaStacktraceFrameSource, JavaStacktraceHeader,
+                JavaStacktraceHeaderException, JavaStacktraceHeaderMessage,
                 JavaStacktraceHeaderThread, JavaThreadName,
             },
-            LogEntryStacktrace,
+            Log, LogEntry, LogEntryStacktrace,
         },
+        LogParser,
     };
-
-    use super::*;
 
     #[test]
     #[ignore = "not sure how to get pest to be lenient with/without newline"]
@@ -111,35 +109,39 @@ mod tests {
                         }),
                         caused_by: None,
                         exception: JavaStacktraceHeaderException {
-                            class_name: JavaClassNameQualified {
+                            class_name: JavaQualifiedReference {
                                 full_text: Cow::Borrowed("java.lang.IllegalArgumentException"),
-                                package: JavaPackage {
-                                    full_text: Cow::Borrowed("java.lang"),
-                                    segments: vec![
-                                        JavaPackageSegment {
-                                            identifier: JavaIdentifierLower {
-                                                text: Cow::Borrowed("java"),
-                                            },
+                                segments: vec![
+                                    JavaMixedIdentifier {
+                                        full_text: Cow::Borrowed("java"),
+                                        angle_open: Cow::Borrowed(""),
+                                        identifier: JavaIdentifier {
+                                            text: Cow::Borrowed("java"),
                                         },
-                                        JavaPackageSegment {
-                                            identifier: JavaIdentifierLower {
-                                                text: Cow::Borrowed("lang"),
-                                            },
+                                        angle_close: Cow::Borrowed(""),
+                                    },
+                                    JavaMixedIdentifier {
+                                        full_text: Cow::Borrowed("lang"),
+                                        angle_open: Cow::Borrowed(""),
+                                        identifier: JavaIdentifier {
+                                            text: Cow::Borrowed("lang"),
                                         },
-                                    ],
-                                },
-                                class_name_simple: JavaClassNameSimple {
-                                    full_text: Cow::Borrowed("IllegalArgumentException"),
-                                    segments: vec![JavaClassNameSegment {
-                                        text: Cow::Borrowed("IllegalArgumentException"),
-                                    }],
-                                },
+                                        angle_close: Cow::Borrowed(""),
+                                    },
+                                    JavaMixedIdentifier {
+                                        full_text: Cow::Borrowed("IllegalArgumentException"),
+                                        angle_open: Cow::Borrowed(""),
+                                        identifier: JavaIdentifier {
+                                            text: Cow::Borrowed("IllegalArgumentException"),
+                                        },
+                                        angle_close: Cow::Borrowed(""),
+                                    },
+                                ],
                             },
                         },
-                        colon: Cow::Borrowed(":"),
-                        message: JavaStacktraceHeaderMessage {
-                            text: Cow::Borrowed("foo"),
-                        },
+                        message: Some(JavaStacktraceHeaderMessage {
+                            text: Cow::Borrowed(": foo"),
+                        }),
                     },
                     frames: vec![
                         JavaStacktraceFrame {
@@ -147,40 +149,50 @@ mod tests {
                                 "at com.example.stacktrace.Example.fail(Example.java:11)",
                             ),
                             at: Cow::Borrowed("at"),
-                            class_name_qualified: JavaClassNameQualified {
-                                full_text: Cow::Borrowed("com.example.stacktrace.Example"),
-                                package: JavaPackage {
-                                    full_text: Cow::Borrowed("com.example.stacktrace"),
-                                    segments: vec![
-                                        JavaPackageSegment {
-                                            identifier: JavaIdentifierLower {
-                                                text: Cow::Borrowed("com"),
-                                            },
+                            method_qualified_reference: JavaQualifiedReference {
+                                full_text: Cow::Borrowed("com.example.stacktrace.Example.fail"),
+                                segments: vec![
+                                    JavaMixedIdentifier {
+                                        full_text: Cow::Borrowed("com"),
+                                        angle_open: Cow::Borrowed(""),
+                                        identifier: JavaIdentifier {
+                                            text: Cow::Borrowed("com"),
                                         },
-                                        JavaPackageSegment {
-                                            identifier: JavaIdentifierLower {
-                                                text: Cow::Borrowed("example"),
-                                            },
+                                        angle_close: Cow::Borrowed(""),
+                                    },
+                                    JavaMixedIdentifier {
+                                        full_text: Cow::Borrowed("example"),
+                                        angle_open: Cow::Borrowed(""),
+                                        identifier: JavaIdentifier {
+                                            text: Cow::Borrowed("example"),
                                         },
-                                        JavaPackageSegment {
-                                            identifier: JavaIdentifierLower {
-                                                text: Cow::Borrowed("stacktrace"),
-                                            },
+                                        angle_close: Cow::Borrowed(""),
+                                    },
+                                    JavaMixedIdentifier {
+                                        full_text: Cow::Borrowed("stacktrace"),
+                                        angle_open: Cow::Borrowed(""),
+                                        identifier: JavaIdentifier {
+                                            text: Cow::Borrowed("stacktrace"),
                                         },
-                                    ],
-                                },
-                                class_name_simple: JavaClassNameSimple {
-                                    full_text: Cow::Borrowed("Example"),
-                                    segments: vec![JavaClassNameSegment {
-                                        text: Cow::Borrowed("Example"),
-                                    }],
-                                },
-                            },
-                            dot: Cow::Borrowed("."),
-                            method_name: JavaMethodName {
-                                identifier: JavaIdentifier {
-                                    text: Cow::Borrowed("fail"),
-                                },
+                                        angle_close: Cow::Borrowed(""),
+                                    },
+                                    JavaMixedIdentifier {
+                                        full_text: Cow::Borrowed("Example"),
+                                        angle_open: Cow::Borrowed(""),
+                                        identifier: JavaIdentifier {
+                                            text: Cow::Borrowed("Example"),
+                                        },
+                                        angle_close: Cow::Borrowed(""),
+                                    },
+                                    JavaMixedIdentifier {
+                                        full_text: Cow::Borrowed("fail"),
+                                        angle_open: Cow::Borrowed(""),
+                                        identifier: JavaIdentifier {
+                                            text: Cow::Borrowed("fail"),
+                                        },
+                                        angle_close: Cow::Borrowed(""),
+                                    },
+                                ],
                             },
                             parenthesis_open: Cow::Borrowed("("),
                             frame_source: JavaStacktraceFrameSource::FilePathAndLine(
@@ -197,35 +209,42 @@ mod tests {
                         JavaStacktraceFrame {
                             full_text: Cow::Borrowed("at java.lang.Thread.run(Thread.java:750)"),
                             at: Cow::Borrowed("at"),
-                            class_name_qualified: JavaClassNameQualified {
-                                full_text: Cow::Borrowed("java.lang.Thread"),
-                                package: JavaPackage {
-                                    full_text: Cow::Borrowed("java.lang"),
-                                    segments: vec![
-                                        JavaPackageSegment {
-                                            identifier: JavaIdentifierLower {
-                                                text: Cow::Borrowed("java"),
-                                            },
+                            method_qualified_reference: JavaQualifiedReference {
+                                full_text: Cow::Borrowed("java.lang.Thread.run"),
+                                segments: vec![
+                                    JavaMixedIdentifier {
+                                        full_text: Cow::Borrowed("java"),
+                                        angle_open: Cow::Borrowed(""),
+                                        identifier: JavaIdentifier {
+                                            text: Cow::Borrowed("java"),
                                         },
-                                        JavaPackageSegment {
-                                            identifier: JavaIdentifierLower {
-                                                text: Cow::Borrowed("lang"),
-                                            },
+                                        angle_close: Cow::Borrowed(""),
+                                    },
+                                    JavaMixedIdentifier {
+                                        full_text: Cow::Borrowed("lang"),
+                                        angle_open: Cow::Borrowed(""),
+                                        identifier: JavaIdentifier {
+                                            text: Cow::Borrowed("lang"),
                                         },
-                                    ],
-                                },
-                                class_name_simple: JavaClassNameSimple {
-                                    full_text: Cow::Borrowed("Thread"),
-                                    segments: vec![JavaClassNameSegment {
-                                        text: Cow::Borrowed("Thread"),
-                                    }],
-                                },
-                            },
-                            dot: Cow::Borrowed("."),
-                            method_name: JavaMethodName {
-                                identifier: JavaIdentifier {
-                                    text: Cow::Borrowed("run"),
-                                },
+                                        angle_close: Cow::Borrowed(""),
+                                    },
+                                    JavaMixedIdentifier {
+                                        full_text: Cow::Borrowed("Thread"),
+                                        angle_open: Cow::Borrowed(""),
+                                        identifier: JavaIdentifier {
+                                            text: Cow::Borrowed("Thread"),
+                                        },
+                                        angle_close: Cow::Borrowed(""),
+                                    },
+                                    JavaMixedIdentifier {
+                                        full_text: Cow::Borrowed("run"),
+                                        angle_open: Cow::Borrowed(""),
+                                        identifier: JavaIdentifier {
+                                            text: Cow::Borrowed("run"),
+                                        },
+                                        angle_close: Cow::Borrowed(""),
+                                    },
+                                ],
                             },
                             parenthesis_open: Cow::Borrowed("("),
                             frame_source: JavaStacktraceFrameSource::FilePathAndLine(

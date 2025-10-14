@@ -4,7 +4,7 @@ use pest::iterators::Pair;
 
 use crate::{
     file::FilePathAndLine,
-    log::java::{JavaClassNameQualified, JavaMethodName, JavaStacktraceFrameSource},
+    log::java::{JavaQualifiedReference, JavaStacktraceFrameSource},
     log_parser::Rule,
 };
 
@@ -27,12 +27,8 @@ pub struct JavaStacktraceFrame<'s> {
     pub full_text: Cow<'s, str>,
     /// The `at` text.
     pub at: Cow<'s, str>,
-    /// The `Exception in thread ".."` text, if any.
-    pub class_name_qualified: JavaClassNameQualified<'s>,
-    /// The `.` separator between the class name and method name.
-    pub dot: Cow<'s, str>,
-    /// The `com.example.stacktrace.Example$Exception` text.
-    pub method_name: JavaMethodName<'s>,
+    /// The `com.example.stacktrace.Example.fail` text.
+    pub method_qualified_reference: JavaQualifiedReference<'s>,
     /// The `(` between the method name and the parameters.
     pub parenthesis_open: Cow<'s, str>,
     /// The `Example.java:11` / `"Native Method"` text inside the parentheses.
@@ -44,24 +40,19 @@ pub struct JavaStacktraceFrame<'s> {
 impl<'s> From<Pair<'s, Rule>> for JavaStacktraceFrame<'s> {
     fn from(java_stacktrace_frame_pair: Pair<'s, Rule>) -> Self {
         let full_text = Cow::Borrowed(java_stacktrace_frame_pair.as_str());
-        let (class_name_qualified, method_name, frame_source) =
+        let (method_qualified_reference, frame_source) =
             java_stacktrace_frame_pair.into_inner().fold(
-                (None, None, None),
-                |(mut class_name_qualified, mut method_name, mut frame_source),
+                (None, None),
+                |(mut method_qualified_reference, mut frame_source),
                  java_stacktrace_frame_pair_inner| {
                     match java_stacktrace_frame_pair_inner.as_rule() {
-                        Rule::JavaClassNameQualified => {
-                            let class_name_qualified_pair = java_stacktrace_frame_pair_inner;
-                            class_name_qualified =
-                                Some(JavaClassNameQualified::from(class_name_qualified_pair));
+                        Rule::JavaQualifiedReference => {
+                            let method_qualified_reference_pair = java_stacktrace_frame_pair_inner;
+                            method_qualified_reference = Some(JavaQualifiedReference::from(
+                                method_qualified_reference_pair,
+                            ));
 
-                            (class_name_qualified, method_name, frame_source)
-                        }
-                        Rule::JavaMethodName => {
-                            let method_name_pair = java_stacktrace_frame_pair_inner;
-                            method_name = Some(JavaMethodName::from(method_name_pair));
-
-                            (class_name_qualified, method_name, frame_source)
+                            (method_qualified_reference, frame_source)
                         }
                         Rule::FilePathAndLine => {
                             let file_path_and_line_pair = java_stacktrace_frame_pair_inner;
@@ -70,7 +61,7 @@ impl<'s> From<Pair<'s, Rule>> for JavaStacktraceFrame<'s> {
                                 file_path_and_line,
                             ));
 
-                            (class_name_qualified, method_name, frame_source)
+                            (method_qualified_reference, frame_source)
                         }
                         Rule::CONST_NATIVE_METHOD => {
                             let native_method_pair = java_stacktrace_frame_pair_inner;
@@ -78,28 +69,206 @@ impl<'s> From<Pair<'s, Rule>> for JavaStacktraceFrame<'s> {
                             frame_source =
                                 Some(JavaStacktraceFrameSource::NativeMethod(native_method));
 
-                            (class_name_qualified, method_name, frame_source)
+                            (method_qualified_reference, frame_source)
+                        }
+                        Rule::CONST_UNKNOWN_SOURCE => {
+                            let unknown_source_pair = java_stacktrace_frame_pair_inner;
+                            let unknown_source = Cow::Borrowed(unknown_source_pair.as_str());
+                            frame_source =
+                                Some(JavaStacktraceFrameSource::UnknownSource(unknown_source));
+
+                            (method_qualified_reference, frame_source)
                         }
                         _ => unreachable!(),
                     }
                 },
             );
 
-        let class_name_qualified = class_name_qualified
-            .expect("Expected `JavaClassNameQualified` to exist after parsing.");
-        let method_name = method_name.expect("Expected `JavaMethodName` to exist after parsing.");
+        let method_qualified_reference = method_qualified_reference
+            .expect("Expected `JavaQualifiedReference` to exist after parsing.");
         let frame_source =
             frame_source.expect("Expected `JavaStacktraceFrameSource` to exist after parsing.");
 
         Self {
             full_text,
             at: Cow::Borrowed("at"),
-            class_name_qualified,
-            dot: Cow::Borrowed("."),
-            method_name,
+            method_qualified_reference,
             parenthesis_open: Cow::Borrowed("("),
             frame_source,
             parenthesis_close: Cow::Borrowed(")"),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::borrow::Cow;
+
+    use pest::Parser;
+
+    use crate::{
+        file::{FilePath, FilePathAndLine},
+        log::java::{
+            JavaIdentifier, JavaMixedIdentifier, JavaQualifiedReference, JavaStacktraceFrame,
+            JavaStacktraceFrameSource,
+        },
+        log_parser::Rule,
+        LogParser,
+    };
+
+    #[test]
+    fn parse_java_stacktrace_frame() {
+        let s = r#"at com.example.stacktrace.Example.fail(Example.java:11)"#;
+        match LogParser::parse(Rule::JavaStacktraceFrame, s) {
+            Ok(mut java_stacktrace_frame_pairs) => {
+                let java_stacktrace_frame_pair = java_stacktrace_frame_pairs
+                    .next()
+                    .expect("Expected one pair for `JavaStacktraceFrame`.");
+                let java_stacktrace_frame = JavaStacktraceFrame::from(java_stacktrace_frame_pair);
+                let java_stacktrace_frame_expected = JavaStacktraceFrame {
+                    full_text: Cow::Borrowed(
+                        "at com.example.stacktrace.Example.fail(Example.java:11)",
+                    ),
+                    at: Cow::Borrowed("at"),
+                    method_qualified_reference: JavaQualifiedReference {
+                        full_text: Cow::Borrowed("com.example.stacktrace.Example.fail"),
+                        segments: vec![
+                            JavaMixedIdentifier {
+                                full_text: Cow::Borrowed("com"),
+                                angle_open: Cow::Borrowed(""),
+                                identifier: JavaIdentifier {
+                                    text: Cow::Borrowed("com"),
+                                },
+                                angle_close: Cow::Borrowed(""),
+                            },
+                            JavaMixedIdentifier {
+                                full_text: Cow::Borrowed("example"),
+                                angle_open: Cow::Borrowed(""),
+                                identifier: JavaIdentifier {
+                                    text: Cow::Borrowed("example"),
+                                },
+                                angle_close: Cow::Borrowed(""),
+                            },
+                            JavaMixedIdentifier {
+                                full_text: Cow::Borrowed("stacktrace"),
+                                angle_open: Cow::Borrowed(""),
+                                identifier: JavaIdentifier {
+                                    text: Cow::Borrowed("stacktrace"),
+                                },
+                                angle_close: Cow::Borrowed(""),
+                            },
+                            JavaMixedIdentifier {
+                                full_text: Cow::Borrowed("Example"),
+                                angle_open: Cow::Borrowed(""),
+                                identifier: JavaIdentifier {
+                                    text: Cow::Borrowed("Example"),
+                                },
+                                angle_close: Cow::Borrowed(""),
+                            },
+                            JavaMixedIdentifier {
+                                full_text: Cow::Borrowed("fail"),
+                                angle_open: Cow::Borrowed(""),
+                                identifier: JavaIdentifier {
+                                    text: Cow::Borrowed("fail"),
+                                },
+                                angle_close: Cow::Borrowed(""),
+                            },
+                        ],
+                    },
+                    parenthesis_open: Cow::Borrowed("("),
+                    frame_source: JavaStacktraceFrameSource::FilePathAndLine(FilePathAndLine {
+                        full_text: Cow::Borrowed("Example.java:11"),
+                        file_path: FilePath {
+                            text: Cow::Borrowed("Example.java"),
+                        },
+                        line_number: 11,
+                    }),
+                    parenthesis_close: Cow::Borrowed(")"),
+                };
+                assert_eq!(java_stacktrace_frame_expected, java_stacktrace_frame);
+            }
+            Err(e) => {
+                eprintln!("Failed to parse `JavaStacktraceFrame`: {}", e);
+                Err(e).unwrap()
+            }
+        }
+    }
+
+    #[test]
+    fn parse_java_stacktrace_frame_with_init_method() {
+        let s = r#"at com.example.stacktrace.Example.<init>(Example.java:11)"#;
+        match LogParser::parse(Rule::JavaStacktraceFrame, s) {
+            Ok(mut java_stacktrace_frame_pairs) => {
+                let java_stacktrace_frame_pair = java_stacktrace_frame_pairs
+                    .next()
+                    .expect("Expected one pair for `JavaStacktraceFrame`.");
+                let java_stacktrace_frame = JavaStacktraceFrame::from(java_stacktrace_frame_pair);
+                let java_stacktrace_frame_expected = JavaStacktraceFrame {
+                    full_text: Cow::Borrowed(
+                        "at com.example.stacktrace.Example.<init>(Example.java:11)",
+                    ),
+                    at: Cow::Borrowed("at"),
+                    method_qualified_reference: JavaQualifiedReference {
+                        full_text: Cow::Borrowed("com.example.stacktrace.Example.<init>"),
+                        segments: vec![
+                            JavaMixedIdentifier {
+                                full_text: Cow::Borrowed("com"),
+                                angle_open: Cow::Borrowed(""),
+                                identifier: JavaIdentifier {
+                                    text: Cow::Borrowed("com"),
+                                },
+                                angle_close: Cow::Borrowed(""),
+                            },
+                            JavaMixedIdentifier {
+                                full_text: Cow::Borrowed("example"),
+                                angle_open: Cow::Borrowed(""),
+                                identifier: JavaIdentifier {
+                                    text: Cow::Borrowed("example"),
+                                },
+                                angle_close: Cow::Borrowed(""),
+                            },
+                            JavaMixedIdentifier {
+                                full_text: Cow::Borrowed("stacktrace"),
+                                angle_open: Cow::Borrowed(""),
+                                identifier: JavaIdentifier {
+                                    text: Cow::Borrowed("stacktrace"),
+                                },
+                                angle_close: Cow::Borrowed(""),
+                            },
+                            JavaMixedIdentifier {
+                                full_text: Cow::Borrowed("Example"),
+                                angle_open: Cow::Borrowed(""),
+                                identifier: JavaIdentifier {
+                                    text: Cow::Borrowed("Example"),
+                                },
+                                angle_close: Cow::Borrowed(""),
+                            },
+                            JavaMixedIdentifier {
+                                full_text: Cow::Borrowed("<init>"),
+                                angle_open: Cow::Borrowed("<"),
+                                identifier: JavaIdentifier {
+                                    text: Cow::Borrowed("init"),
+                                },
+                                angle_close: Cow::Borrowed(">"),
+                            },
+                        ],
+                    },
+                    parenthesis_open: Cow::Borrowed("("),
+                    frame_source: JavaStacktraceFrameSource::FilePathAndLine(FilePathAndLine {
+                        full_text: Cow::Borrowed("Example.java:11"),
+                        file_path: FilePath {
+                            text: Cow::Borrowed("Example.java"),
+                        },
+                        line_number: 11,
+                    }),
+                    parenthesis_close: Cow::Borrowed(")"),
+                };
+                assert_eq!(java_stacktrace_frame_expected, java_stacktrace_frame);
+            }
+            Err(e) => {
+                eprintln!("Failed to parse `JavaStacktraceFrame`: {}", e);
+                Err(e).unwrap()
+            }
         }
     }
 }

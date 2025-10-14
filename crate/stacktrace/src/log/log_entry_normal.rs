@@ -23,6 +23,8 @@ impl<'s> IntoLogBlock<'s> for LogEntryNormal<'s> {
         let children_collapsed_text = Cow::Borrowed("");
 
         LogBlock {
+            nesting_level: 0,
+            group_number: 0,
             text,
             line_segments,
             line_segments_collapsed,

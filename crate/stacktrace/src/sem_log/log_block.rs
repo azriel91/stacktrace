@@ -4,7 +4,9 @@ use std::{
 };
 
 use crate::{
-    log::java::{JavaClassNameQualified, JavaStacktraceFrame, JavaStacktraceFrameSource},
+    log::java::{
+        JavaMixedIdentifier, JavaQualifiedReference, JavaStacktraceFrame, JavaStacktraceFrameSource,
+    },
     sem_log::{LogLineSegment, LogLineSegmentKind},
 };
 
@@ -15,6 +17,22 @@ use crate::{
 /// information displayed, hiding irrelevant information.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct LogBlock<'s> {
+    /// Nesting level of this block, `0` is a top level block.
+    ///
+    /// This allows styling to be applied to the block based on its nesting
+    /// level.
+    pub nesting_level: u8,
+
+    /// Number assigned to this block so that different blocks with the same
+    /// group number can be styled with the same background colour.
+    ///
+    /// This will allow users to visually see which code blocks are related to
+    /// each other.
+    ///
+    /// Blocks with the same `(nesting_level, group_number)` values should have
+    /// the same background colour.
+    pub group_number: u32,
+
     /// Original text of this line, copied when the copy button is clicked.
     ///
     /// Usually this is one line. However, in the case of rust stack traces,
@@ -40,6 +58,8 @@ impl<'s> LogBlock<'s> {
     /// Returns a fully owned version of this [`LogBlock`].
     pub fn into_static(&self) -> LogBlock<'static> {
         LogBlock {
+            nesting_level: self.nesting_level,
+            group_number: self.group_number,
             text: Cow::Owned(self.text.clone().into_owned()),
             line_segments: self
                 .line_segments
@@ -96,44 +116,48 @@ impl<'s> From<JavaStacktraceFrame<'s>> for LogBlockPartial<'s> {
         let JavaStacktraceFrame {
             full_text,
             at,
-            class_name_qualified:
-                JavaClassNameQualified {
+            method_qualified_reference:
+                JavaQualifiedReference {
                     full_text: _,
-                    package,
-                    class_name_simple,
+                    segments,
                 },
-            dot,
-            method_name,
             parenthesis_open,
             frame_source,
             parenthesis_close,
         } = frame;
         let text = full_text;
         let line_segments = {
-            let mut line_segments = Vec::with_capacity(package.segments.len() + 4);
+            let mut line_segments = Vec::with_capacity(segments.len() + 3);
             line_segments.push(LogLineSegment {
                 text: at,
                 separator: Cow::Borrowed(" "),
                 kind: LogLineSegmentKind::Context,
             });
-            line_segments.extend(package.segments.into_iter().map(|package_segment| {
+            line_segments.extend(segments.into_iter().map(|mixed_identifier| {
+                let JavaMixedIdentifier {
+                    full_text,
+                    angle_open: _,
+                    identifier: _,
+                    angle_close: _,
+                } = mixed_identifier;
                 LogLineSegment {
-                    text: package_segment.identifier.text,
+                    text: full_text,
                     separator: Cow::Borrowed("."),
                     kind: LogLineSegmentKind::Introduced,
                 }
             }));
+            // Remove dot from the last segment, so that there is no dot before the opening
+            // parenthesis.
+            if let Some(method_name_segment) = line_segments.last_mut() {
+                method_name_segment.separator = Cow::Borrowed("");
+            }
             line_segments.push(LogLineSegment {
-                text: class_name_simple.full_text,
-                separator: dot,
-                kind: LogLineSegmentKind::Introduced,
-            });
-            line_segments.push(LogLineSegment {
-                text: method_name.identifier.text,
-                separator: parenthesis_open,
-                kind: LogLineSegmentKind::Introduced,
+                text: parenthesis_open,
+                separator: Cow::Borrowed(""),
+                kind: LogLineSegmentKind::Context,
             });
             let text = match frame_source {
+                JavaStacktraceFrameSource::UnknownSource(unknown_source) => unknown_source,
                 JavaStacktraceFrameSource::NativeMethod(native_method) => native_method,
                 JavaStacktraceFrameSource::FilePathAndLine(file_path_and_line) => {
                     file_path_and_line.full_text
