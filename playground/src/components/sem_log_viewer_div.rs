@@ -7,7 +7,7 @@ use stacktrace::sem_log::{LogBlock, SemLog};
 
 use crate::components::LogBlockDiv;
 
-const LOG_VIEWER_CLASSES: &str = "\
+const SEM_LOG_VIEWER_DIV_CLASSES: &str = "\
     bg-slate-700 \
     text-slate-100 \
     font-mono \
@@ -23,20 +23,20 @@ const LOG_VIEWER_CLASSES: &str = "\
     text-nowrap \
 ";
 
-const LOG_VIEWER_PLACEHOLDER_CLASSES: &str = "\
+const SEM_LOG_VIEWER_PLACEHOLDER_CLASSES: &str = "\
     opacity-75 \
     italic \
     select-none \
 ";
 
 #[component]
-pub fn LogViewer(sem_log: Signal<Option<SemLog<'static>>>) -> impl IntoView {
+pub fn SemLogViewerDiv(sem_log: Signal<Option<SemLog<'static>>>) -> impl IntoView {
     let placeholder_classes = move || match sem_log.get() {
-        Some(sem_log) if sem_log.log_blocks.is_empty() => LOG_VIEWER_PLACEHOLDER_CLASSES,
+        Some(sem_log) if sem_log.log_blocks.is_empty() => SEM_LOG_VIEWER_PLACEHOLDER_CLASSES,
         _ => "hidden",
     };
     view! {
-        <div class=LOG_VIEWER_CLASSES>
+        <div class=SEM_LOG_VIEWER_DIV_CLASSES>
             <span class=placeholder_classes>
                 "Paste some logs into the text box above"
             </span>
