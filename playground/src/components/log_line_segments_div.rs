@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use leptos::{
     component,
     either::Either,
-    prelude::{ClassAttribute, ElementChild, For, Get, ReadSignal},
+    prelude::{ClassAttribute, ElementChild, For, Get, Memo},
     view, IntoView,
 };
 use stacktrace::sem_log::LogLineSegment;
@@ -12,7 +12,7 @@ use crate::components::LogLineSegmentSpan;
 
 #[component]
 pub fn LogLineSegmentsDiv(
-    expanded: ReadSignal<bool>,
+    expanded: Memo<bool>,
     line_segments: Vec<LogLineSegment<'static>>,
     line_segments_collapsed: Vec<LogLineSegment<'static>>,
     children_collapsed_text: Cow<'static, str>,
