@@ -5,9 +5,9 @@ use leptos::{
 };
 use stacktrace::sem_log::{LogBlock, SemLog};
 
-use crate::components::LogBlockDiv;
+use crate::components::{LogBlockDiv, SemLogViewerControlsDiv};
 
-const LOG_VIEWER_CLASSES: &str = "\
+const SEM_LOG_VIEWER_DIV_CLASSES: &str = "\
     bg-slate-700 \
     text-slate-100 \
     font-mono \
@@ -23,20 +23,25 @@ const LOG_VIEWER_CLASSES: &str = "\
     text-nowrap \
 ";
 
-const LOG_VIEWER_PLACEHOLDER_CLASSES: &str = "\
+const SEM_LOG_VIEWER_PLACEHOLDER_CLASSES: &str = "\
     opacity-75 \
     italic \
     select-none \
 ";
 
+const BLOCK_EXPAND_LEVEL_DEFAULT: u8 = 1;
+
 #[component]
-pub fn LogViewer(sem_log: Signal<Option<SemLog<'static>>>) -> impl IntoView {
+pub fn SemLogViewerDiv(sem_log: Signal<Option<SemLog<'static>>>) -> impl IntoView {
     let placeholder_classes = move || match sem_log.get() {
-        Some(sem_log) if sem_log.log_blocks.is_empty() => LOG_VIEWER_PLACEHOLDER_CLASSES,
+        Some(sem_log) if sem_log.log_blocks.is_empty() => SEM_LOG_VIEWER_PLACEHOLDER_CLASSES,
         _ => "hidden",
     };
+    let (block_expand_level, block_expand_level_set) =
+        leptos::prelude::signal(BLOCK_EXPAND_LEVEL_DEFAULT);
     view! {
-        <div class=LOG_VIEWER_CLASSES>
+        <SemLogViewerControlsDiv block_expand_level block_expand_level_set />
+        <div class=SEM_LOG_VIEWER_DIV_CLASSES>
             <span class=placeholder_classes>
                 "Paste some logs into the text box above"
             </span>
@@ -48,7 +53,7 @@ pub fn LogViewer(sem_log: Signal<Option<SemLog<'static>>>) -> impl IntoView {
                         .unwrap_or_default()
                 }
                 key=LogBlock::hash_with_default_hasher
-                children=|log_block| view! { <LogBlockDiv log_block /> }
+                children=move |log_block| view! { <LogBlockDiv log_block block_expand_level=Some(block_expand_level) /> }
             />
         </div>
     }

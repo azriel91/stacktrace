@@ -16,7 +16,7 @@ use leptos_router::{
 };
 use stacktrace::{sem_log::SemLog, LogParser};
 
-use crate::components::LogViewer;
+use crate::components::SemLogViewerDiv;
 
 pub fn shell(options: LeptosOptions) -> impl IntoView {
     view! {
@@ -351,7 +351,7 @@ fn HomePage() -> impl IntoView {
                 }
             />
 
-            <LogViewer sem_log />
+            <SemLogViewerDiv sem_log />
         </div>
     }
 }
