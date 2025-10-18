@@ -29,7 +29,7 @@ const SEM_LOG_VIEWER_PLACEHOLDER_CLASSES: &str = "\
     select-none \
 ";
 
-const BLOCK_EXPAND_LEVEL_DEFAULT: u8 = 2;
+const BLOCK_EXPAND_LEVEL_DEFAULT: u8 = 1;
 
 #[component]
 pub fn SemLogViewerDiv(sem_log: Signal<Option<SemLog<'static>>>) -> impl IntoView {
