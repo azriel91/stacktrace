@@ -40,8 +40,9 @@
 2. [x] Collapsible frames.
 3. [x] Parse lines with different leading segments.
 4. [x] Collapsible segments based on common modules.
-5. [ ] Detect file names, one-click copy.
-6. [ ] Rename this, so it can be published on `crates.io` and used as a library.
+5. [ ] Squish irrelevant log blocks.
+6. [ ] Detect file names, one-click copy.
+7. [ ] Rename this, so it can be published on `crates.io` and used as a library.
 
 
 ## License

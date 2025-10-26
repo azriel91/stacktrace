@@ -25,6 +25,7 @@ impl<'s> IntoLogBlock<'s> for LogEntryNormal<'s> {
         LogBlock {
             nesting_level: 0,
             group_number: GroupNumber::new(0),
+            group_numbers_to_prefix: None, // Idea: This could be per thread, or per project / crate
             text,
             line_segments,
             line_segments_collapsed,
