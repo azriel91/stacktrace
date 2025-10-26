@@ -142,8 +142,12 @@ fn first_line_css_classes(
     match log_block.nesting_level {
         // On second level blocks, cycle through background colours.
         1 => {
-            let bg_colour = BLOCK_BG_COLOURS
-                [log_block.group_number.try_into().unwrap_or(block_index) % BLOCK_BG_COLOURS.len()];
+            let bg_colour = BLOCK_BG_COLOURS[log_block
+                .group_number
+                .into_inner()
+                .try_into()
+                .unwrap_or(block_index)
+                % BLOCK_BG_COLOURS.len()];
             Cow::Owned(format!("{base_classes} {bg_colour}"))
         }
         _ => Cow::Borrowed(base_classes),

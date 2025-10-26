@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use crate::sem_log::{IntoLogBlock, LogBlock, LogLineSegment, LogLineSegmentKind};
+use crate::sem_log::{GroupNumber, IntoLogBlock, LogBlock, LogLineSegment, LogLineSegmentKind};
 
 /// A log message that isn't specially treated.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -24,7 +24,7 @@ impl<'s> IntoLogBlock<'s> for LogEntryNormal<'s> {
 
         LogBlock {
             nesting_level: 0,
-            group_number: 0,
+            group_number: GroupNumber::new(0),
             text,
             line_segments,
             line_segments_collapsed,

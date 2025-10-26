@@ -156,12 +156,14 @@
 use crate::log::Log;
 
 pub use self::{
+    group_number::GroupNumber,
     into_log_block::IntoLogBlock,
     log_block::{LogBlock, LogBlockPartial},
     log_line_segment::LogLineSegment,
     log_line_segment_kind::LogLineSegmentKind,
 };
 
+mod group_number;
 mod into_log_block;
 mod log_block;
 mod log_line_segment;
