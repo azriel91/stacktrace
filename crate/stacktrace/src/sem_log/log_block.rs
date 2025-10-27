@@ -78,7 +78,7 @@ impl<'s> LogBlock<'s> {
                         GroupNumberToPrefix::<'static>::new(),
                         |mut group_numbers_to_prefix_next, (group_number, prefix)| {
                             group_numbers_to_prefix_next.insert(
-                                group_number.clone(),
+                                *group_number,
                                 prefix
                                     .iter()
                                     .map(|segment| Cow::Owned(segment.clone().into_owned()))

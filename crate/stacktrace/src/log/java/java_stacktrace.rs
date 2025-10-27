@@ -458,7 +458,9 @@ impl<'s> JavaStacktrace<'s> {
                     prefix
                 },
             );
-        let group_number = match prefix_to_group_numbers.get(&prefix).copied() {
+        
+
+        match prefix_to_group_numbers.get(&prefix).copied() {
             Some(group_number) => group_number,
             None => {
                 let group_number_next =
@@ -468,9 +470,7 @@ impl<'s> JavaStacktrace<'s> {
 
                 group_number_next
             }
-        };
-
-        group_number
+        }
     }
 }
 

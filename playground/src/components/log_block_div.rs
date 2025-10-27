@@ -387,7 +387,7 @@ fn first_line_css_classes(
     match (groupings_significance, squished) {
         (GroupingsSignificance::NotSignificant, false) => Cow::Borrowed(base_classes),
         (GroupingsSignificance::NotSignificant, true) => {
-            Cow::Owned(format!("{BLOCK_SQUARE_CLASSES}"))
+            Cow::Owned(BLOCK_SQUARE_CLASSES.to_string())
         }
         // When there are prefix-based group numbers, cycle through background colours.
         (GroupingsSignificance::Significant { .. }, false) => {
