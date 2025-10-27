@@ -458,7 +458,6 @@ impl<'s> JavaStacktrace<'s> {
                     prefix
                 },
             );
-        
 
         match prefix_to_group_numbers.get(&prefix).copied() {
             Some(group_number) => group_number,
