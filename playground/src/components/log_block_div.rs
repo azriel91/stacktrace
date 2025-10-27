@@ -4,8 +4,8 @@ use leptos::{
     component,
     either::Either,
     prelude::{
-        ClassAttribute, Effect, ElementChild, For, Get, IntoAny, Memo, OnAttribute, ReadSignal,
-        Set, Signal, Write, WriteSignal,
+        ClassAttribute, Effect, ElementChild, For, Get, GlobalAttributes, IntoAny, Memo,
+        OnAttribute, ReadSignal, Set, Signal, Write, WriteSignal,
     },
     view, IntoView,
 };
@@ -36,6 +36,8 @@ const BLOCK_CLASSES: &str = "\
     open:border-blue-400 \
     hover:open:border-blue-200 \
     hover:open:has-[:hover:open]:border-blue-400 \
+    focus:open:border-blue-200 \
+    focus:open:has-[:hover:open]:border-blue-400 \
 ";
 
 const BLOCK_BG_COLOURS: [&str; 6] = [
@@ -52,6 +54,7 @@ const BLOCK_SQUARE_CLASSES: &str = "\
     border-transparent \
     rounded-lg \
     hover:border-blue-400 \
+    focus:border-blue-400 \
     inline-block \
     min-w-8 \
     h-8 \
@@ -185,10 +188,14 @@ pub fn LogBlockDivSquished(
             line
         });
     view! {
-        <div class={move || classes.get()}>
+        <div
+            class={move || classes.get()}
+            tabindex="0"
+        >
             <div class="\
                 max-w-0 \
                 group-hover:max-w-3xs \
+                group-focus:max-w-3xs \
                 text-ellipsis \
                 overflow-hidden \
                 transition-all \
@@ -259,7 +266,10 @@ pub fn LogBlockDivUnsquished(
 
     if is_leaf_block {
         Either::Left(view! {
-            <div class={move || classes.get()}>
+            <div
+                class={move || classes.get()}
+                tabindex="0"
+            >
                 <LogLineSegmentsDiv
                     expanded
                     line_segments={log_block.line_segments.clone()}
@@ -281,7 +291,9 @@ pub fn LogBlockDivUnsquished(
         };
 
         Either::Right(view! {
-            <div class="rounded">
+            <div
+                tabindex="0"
+            >
                 <details
                     class={move || classes.get()}
                     open={move || expanded.get()}
