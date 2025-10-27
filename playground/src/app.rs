@@ -51,7 +51,7 @@ const PAGE_CLASSES: &str = "\
     text-slate-100 \
     \
     min-h-dvh \
-    min-w-dvw \
+    max-w-dvw \
     overflow-scroll \
     p-8 \
     \
@@ -83,9 +83,11 @@ const MAIN_CLASSES: &str = "\
 ";
 
 const HOMEPAGE_CLASSES: &str = "\
-    h-full \
-    w-full \
+    h-dvh \
+    w-dvw \
     lg:max-w-7xl \
+    flex \
+    flex-col \
 ";
 
 const STACKTRACE_TEXT_CLASSES: &str = "\
