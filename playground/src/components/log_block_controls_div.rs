@@ -14,6 +14,7 @@ pub fn LogBlockControlsDiv(#[prop(into)] squish_all_others: Callback<()>) -> imp
             opacity-0 \
             group-hover:opacity-100 \
             group-focus:opacity-100 \
+            group-focus-within:opacity-100 \
             "
         >
             <button
