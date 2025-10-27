@@ -163,6 +163,7 @@ pub use self::{
     log_block::{LogBlock, LogBlockPartial},
     log_line_segment::LogLineSegment,
     log_line_segment_kind::LogLineSegmentKind,
+    nesting_level::NestingLevel,
 };
 
 mod group_number;
@@ -172,6 +173,7 @@ mod into_log_block;
 mod log_block;
 mod log_line_segment;
 mod log_line_segment_kind;
+mod nesting_level;
 
 /// Logs with semantic information augmented to ease clear presentation.
 ///

@@ -7,7 +7,7 @@ use crate::{
     log::java::{
         JavaMixedIdentifier, JavaQualifiedReference, JavaStacktraceFrame, JavaStacktraceFrameSource,
     },
-    sem_log::{GroupNumber, GroupNumberToPrefix, LogLineSegment, LogLineSegmentKind},
+    sem_log::{GroupNumber, GroupNumberToPrefix, LogLineSegment, LogLineSegmentKind, NestingLevel},
 };
 
 /// A line in the log file.
@@ -21,7 +21,7 @@ pub struct LogBlock<'s> {
     ///
     /// This allows styling to be applied to the block based on its nesting
     /// level.
-    pub nesting_level: u8,
+    pub nesting_level: NestingLevel,
 
     /// Number assigned to this block so that different blocks with the same
     /// group number can be styled with the same background colour.

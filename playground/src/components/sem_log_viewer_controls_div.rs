@@ -6,6 +6,7 @@ use leptos::{
     },
     view, IntoView,
 };
+use stacktrace::sem_log::NestingLevel;
 use wasm_bindgen::JsCast;
 
 const SEM_LOG_VIEWER_CONTROLS_DIV_CLASSES: &str = "\
@@ -46,8 +47,8 @@ const EXPAND_LEVEL_BUTTON_CLASSES: &str = "\
 
 #[component]
 pub fn SemLogViewerControlsDiv(
-    block_expand_level: ReadSignal<u8>,
-    block_expand_level_set: WriteSignal<u8>,
+    block_expand_level: ReadSignal<NestingLevel>,
+    block_expand_level_set: WriteSignal<NestingLevel>,
 ) -> impl IntoView {
     view! {
         <div class=SEM_LOG_VIEWER_CONTROLS_DIV_CLASSES>
@@ -59,13 +60,13 @@ pub fn SemLogViewerControlsDiv(
                 min="0"
                 max="10"
                 class=EXPAND_LEVEL_INPUT_CLASSES
-                prop:value=move || block_expand_level.get()
+                prop:value=move || block_expand_level.get().into_inner()
                 on:input=move |ev| {
                     let value = ev.unchecked_ref::<InputEvent>()
                         .data()
                         .map(|s| s.parse::<u8>());
                     if let Some(Ok(value)) = value {
-                        block_expand_level_set.set(value);
+                        block_expand_level_set.set(NestingLevel::new(value));
                     }
                 }
             />
@@ -78,15 +79,15 @@ pub fn SemLogViewerControlsDiv(
 
 #[component]
 fn ExpandLevelSubtractButton(
-    block_expand_level: ReadSignal<u8>,
-    block_expand_level_set: WriteSignal<u8>,
+    block_expand_level: ReadSignal<NestingLevel>,
+    block_expand_level_set: WriteSignal<NestingLevel>,
 ) -> impl IntoView {
     view! {
         <button
             class=EXPAND_LEVEL_BUTTON_CLASSES
             on:click=move |_event| {
                 let next_value = block_expand_level.get().saturating_sub(1);
-                block_expand_level_set.set(next_value);
+                block_expand_level_set.set(NestingLevel::new(next_value));
             }
         >
             "-"
@@ -96,15 +97,15 @@ fn ExpandLevelSubtractButton(
 
 #[component]
 fn ExpandLevelAddButton(
-    block_expand_level: ReadSignal<u8>,
-    block_expand_level_set: WriteSignal<u8>,
+    block_expand_level: ReadSignal<NestingLevel>,
+    block_expand_level_set: WriteSignal<NestingLevel>,
 ) -> impl IntoView {
     view! {
         <button
             class=EXPAND_LEVEL_BUTTON_CLASSES
             on:click=move |_event| {
                 let next_value = block_expand_level.get().saturating_add(1);
-                block_expand_level_set.set(next_value);
+                block_expand_level_set.set(NestingLevel::new(next_value));
             }
         >
             "+"

@@ -1,4 +1,7 @@
-use std::{collections::HashMap, time::Duration};
+use std::{
+    collections::{BTreeMap, HashMap},
+    time::Duration,
+};
 
 use leptos::{
     component,
@@ -15,7 +18,10 @@ use leptos_router::{
     StaticSegment,
 };
 use reactive_stores::Store;
-use stacktrace::{sem_log::SemLog, LogParser};
+use stacktrace::{
+    sem_log::{GroupNumberToPrefix, SemLog},
+    LogParser,
+};
 
 use crate::{
     components::SemLogViewerDiv,
@@ -350,22 +356,29 @@ fn HomePage() -> impl IntoView {
         let sem_log = sem_log_result.get().ok();
 
         if let Some(sem_log) = sem_log.as_ref() {
-            let log_block_group_numbers_to_prefix_next =
+            let log_block_group_numbers_to_prefixes_next =
                 sem_log.log_blocks.iter().enumerate().fold(
                     HashMap::with_capacity(sem_log.log_blocks.len()),
-                    |mut log_block_group_numbers_to_prefix_next, (block_index, log_block)| {
+                    |mut log_block_group_numbers_to_prefixes_next, (block_index, log_block)| {
                         if let Some(group_numbers_to_prefix) =
                             log_block.group_numbers_to_prefix.clone()
                         {
-                            log_block_group_numbers_to_prefix_next
+                            let group_numbers_to_prefix_acc: &mut BTreeMap<
+                                usize,
+                                GroupNumberToPrefix<'static>,
+                            > = log_block_group_numbers_to_prefixes_next
+                                .entry(log_block.nesting_level)
+                                .or_default();
+                            group_numbers_to_prefix_acc
                                 .insert(block_index, group_numbers_to_prefix);
                         }
-                        log_block_group_numbers_to_prefix_next
+                        log_block_group_numbers_to_prefixes_next
                     },
                 );
+
             sem_log_viewer_state
-                .log_block_group_numbers_to_prefix()
-                .set(log_block_group_numbers_to_prefix_next);
+                .log_block_group_numbers_to_prefixes()
+                .set(log_block_group_numbers_to_prefixes_next);
 
             sem_log_viewer_state
                 .log_block_group_numbers_squished()

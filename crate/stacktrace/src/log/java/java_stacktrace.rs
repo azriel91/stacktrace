@@ -7,7 +7,7 @@ use crate::{
     log_parser::Rule,
     sem_log::{
         GroupNumber, GroupNumberToPrefix, GroupPrefix, IntoLogBlock, LogBlock, LogBlockPartial,
-        LogLineSegment, LogLineSegmentKind,
+        LogLineSegment, LogLineSegmentKind, NestingLevel,
     },
 };
 
@@ -47,7 +47,8 @@ impl<'s> JavaStacktrace<'s> {
 
         let mut log_blocks = Vec::new();
         let None = Self::log_block_partials_into_log_blocks(
-            1, // The exception is the root of the log block hierarchy, so frames start at 1.
+            // The exception is the root of the log block hierarchy, so frames start at 1.
+            NestingLevel::new(1),
             &mut prefix_to_group_numbers,
             &mut group_numbers_to_prefix,
             &mut log_blocks,
@@ -158,7 +159,7 @@ impl<'s> JavaStacktrace<'s> {
     /// group number.
     #[must_use]
     fn log_block_partials_into_log_blocks(
-        nesting_level: u8,
+        nesting_level: NestingLevel,
         prefix_to_group_numbers: &mut HashMap<GroupPrefix<'s>, GroupNumber>,
         group_numbers_to_prefix: &mut GroupNumberToPrefix<'s>,
         log_blocks: &mut Vec<LogBlock<'s>>,
@@ -561,7 +562,7 @@ impl<'s> IntoLogBlock<'s> for JavaStacktrace<'s> {
         let children_collapsed_text = Cow::Owned(format!("{frame_count} frames"));
 
         LogBlock {
-            nesting_level: 0,
+            nesting_level: NestingLevel::new(0),
             group_number: GroupNumber::new(0),
             group_numbers_to_prefix: Some(group_numbers_to_prefix),
             text: header.full_text,
@@ -585,7 +586,7 @@ mod tests {
         log_parser::Rule,
         sem_log::{
             GroupNumber, GroupNumberToPrefix, GroupPrefix, IntoLogBlock, LogBlock, LogLineSegment,
-            LogLineSegmentKind,
+            LogLineSegmentKind, NestingLevel,
         },
         LogParser,
     };
@@ -604,7 +605,7 @@ mod tests {
                at java.io.DataInputStream.readFully(DataInputStream.java:195)\n\
             ";
         let log_block_expected = LogBlock {
-            nesting_level: 0,
+            nesting_level: NestingLevel::new(0),
             group_number: GroupNumber::new(0),
             group_numbers_to_prefix: Some(GroupNumberToPrefix::from({
                 let mut group_number_to_prefix = BTreeMap::new();
@@ -634,7 +635,7 @@ mod tests {
                 kind: LogLineSegmentKind::Introduced,
             }],
             children: vec![LogBlock {
-                nesting_level: 1,
+                nesting_level: NestingLevel::new(1),
                 group_number: GroupNumber::new(2),
                 group_numbers_to_prefix: None,
                 text: Cow::Borrowed("at java.net.SocketInputStream.socketRead0(Native Method)"),
@@ -694,7 +695,7 @@ mod tests {
                 ],
                 children: vec![
                     LogBlock {
-                        nesting_level: 2,
+                        nesting_level: NestingLevel::new(2),
                         group_number: GroupNumber::new(0),
                         group_numbers_to_prefix: None,
                         text: Cow::Borrowed(
@@ -784,7 +785,7 @@ mod tests {
                         children_collapsed_text: Cow::Borrowed("1 frames"),
                     },
                     LogBlock {
-                        nesting_level: 2,
+                        nesting_level: NestingLevel::new(2),
                         group_number: GroupNumber::new(0),
                         group_numbers_to_prefix: None,
                         text: Cow::Borrowed(
@@ -866,7 +867,7 @@ mod tests {
                             },
                         ],
                         children: vec![LogBlock {
-                            nesting_level: 3,
+                            nesting_level: NestingLevel::new(3),
                             group_number: GroupNumber::new(0),
                             group_numbers_to_prefix: None,
                             text: Cow::Borrowed(
@@ -958,7 +959,7 @@ mod tests {
                         children_collapsed_text: Cow::Borrowed("2 frames"),
                     },
                     LogBlock {
-                        nesting_level: 2,
+                        nesting_level: NestingLevel::new(2),
                         group_number: GroupNumber::new(1),
                         group_numbers_to_prefix: None,
                         text: Cow::Borrowed(
@@ -1026,7 +1027,7 @@ mod tests {
                         ],
                         children: vec![
                             LogBlock {
-                                nesting_level: 3,
+                                nesting_level: NestingLevel::new(3),
                                 group_number: GroupNumber::new(1),
                                 group_numbers_to_prefix: None,
                                 text: Cow::Borrowed(
@@ -1116,7 +1117,7 @@ mod tests {
                                 children_collapsed_text: Cow::Borrowed("1 frames"),
                             },
                             LogBlock {
-                                nesting_level: 3,
+                                nesting_level: NestingLevel::new(3),
                                 group_number: GroupNumber::new(1),
                                 group_numbers_to_prefix: None,
                                 text: Cow::Borrowed(
@@ -1206,7 +1207,7 @@ mod tests {
                                 children_collapsed_text: Cow::Borrowed("1 frames"),
                             },
                             LogBlock {
-                                nesting_level: 3,
+                                nesting_level: NestingLevel::new(3),
                                 group_number: GroupNumber::new(1),
                                 group_numbers_to_prefix: None,
                                 text: Cow::Borrowed(

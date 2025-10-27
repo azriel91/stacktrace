@@ -3,9 +3,9 @@ use leptos::{
     prelude::{ClassAttribute, ElementChild, For, Get, Signal},
     view, IntoView,
 };
-use stacktrace::sem_log::{LogBlock, SemLog};
+use stacktrace::sem_log::{LogBlock, NestingLevel, SemLog};
 
-use crate::components::{LogBlockDiv, SemLogViewerControlsDiv};
+use crate::components::{GroupingsSignificance, LogBlockDiv, SemLogViewerControlsDiv};
 
 const SEM_LOG_VIEWER_DIV_CLASSES: &str = "\
     bg-slate-700 \
@@ -29,7 +29,7 @@ const SEM_LOG_VIEWER_PLACEHOLDER_CLASSES: &str = "\
     select-none \
 ";
 
-const BLOCK_EXPAND_LEVEL_DEFAULT: u8 = 1;
+const BLOCK_EXPAND_LEVEL_DEFAULT: NestingLevel = NestingLevel::new(1);
 
 #[component]
 pub fn SemLogViewerDiv(sem_log: Signal<Option<SemLog<'static>>>) -> impl IntoView {
@@ -53,7 +53,13 @@ pub fn SemLogViewerDiv(sem_log: Signal<Option<SemLog<'static>>>) -> impl IntoVie
                         .unwrap_or_default()
                 }
                 key=LogBlock::hash_with_default_hasher
-                children=move |log_block| view! { <LogBlockDiv log_block block_expand_level=Some(block_expand_level) /> }
+                children=move |log_block| view! {
+                    <LogBlockDiv
+                        log_block
+                        block_expand_level=Some(block_expand_level)
+                        groupings_significance=GroupingsSignificance::NotSignificant
+                    />
+                }
             />
         </div>
     }
