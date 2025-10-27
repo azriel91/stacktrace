@@ -50,8 +50,9 @@ const PAGE_CLASSES: &str = "\
     bg-slate-800 \
     text-slate-100 \
     \
-    h-dvh \
-    w-dvw \
+    min-h-dvh \
+    min-w-dvw \
+    overflow-scroll \
     p-8 \
     \
     flex \
