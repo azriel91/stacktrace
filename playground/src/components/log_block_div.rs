@@ -48,9 +48,14 @@ const BLOCK_BG_COLOURS: [&str; 6] = [
 ];
 
 const BLOCK_SQUARE_CLASSES: &str = "\
+    border \
+    border-transparent \
+    rounded-lg \
+    hover:border-blue-400 \
     inline-block \
     min-w-8 \
     h-8 \
+    px-2 \
 ";
 
 /// Renders a [`LogBlock`] in various forms, such as a collapsed line, a
@@ -141,6 +146,7 @@ pub fn LogBlockDiv(
             move || if squished() {
                 Either::Left(view! {
                     <LogBlockDivSquished
+                        log_block={log_block.clone()}
                         classes=first_line_css_classes
                     />
                 })
@@ -166,9 +172,32 @@ pub fn LogBlockDiv(
 ///
 /// Unsquished means the block is not squished into an `inline-block` square.
 #[component]
-pub fn LogBlockDivSquished(#[prop(into)] classes: Signal<Cow<'static, str>>) -> impl IntoView {
+pub fn LogBlockDivSquished(
+    log_block: LogBlock<'static>,
+    #[prop(into)] classes: Signal<Cow<'static, str>>,
+) -> impl IntoView {
+    let line = log_block
+        .line_segments_collapsed
+        .iter()
+        .fold(String::new(), |mut line, segment| {
+            line.push_str(&segment.text);
+            line.push_str(&segment.separator);
+            line
+        });
     view! {
         <div class={move || classes.get()}>
+            <div class="\
+                max-w-0 \
+                group-hover:max-w-3xs \
+                text-ellipsis \
+                overflow-hidden \
+                transition-all \
+                duration-300 \
+                ease-in-out \
+                "
+            >
+                {line}
+            </div>
         </div>
     }
 }
@@ -252,7 +281,7 @@ pub fn LogBlockDivUnsquished(
         };
 
         Either::Right(view! {
-            <div class="py-1 rounded">
+            <div class="rounded">
                 <details
                     class={move || classes.get()}
                     open={move || expanded.get()}
@@ -302,7 +331,7 @@ fn first_line_css_classes(
     match (groupings_significance, squished) {
         (GroupingsSignificance::NotSignificant, false) => Cow::Borrowed(base_classes),
         (GroupingsSignificance::NotSignificant, true) => {
-            Cow::Owned(format!("{base_classes} {BLOCK_SQUARE_CLASSES}"))
+            Cow::Owned(format!("{BLOCK_SQUARE_CLASSES}"))
         }
         // When there are prefix-based group numbers, cycle through background colours.
         (GroupingsSignificance::Significant { .. }, false) => {
@@ -315,7 +344,7 @@ fn first_line_css_classes(
             let bg_colour =
                 BLOCK_BG_COLOURS[group_number.into_inner().try_into().unwrap_or(block_index)
                     % BLOCK_BG_COLOURS.len()];
-            Cow::Owned(format!("{base_classes} {bg_colour} {BLOCK_SQUARE_CLASSES}"))
+            Cow::Owned(format!("group {bg_colour} {BLOCK_SQUARE_CLASSES}"))
         }
     }
 }
