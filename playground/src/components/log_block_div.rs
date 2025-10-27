@@ -4,7 +4,7 @@ use leptos::{
     component,
     either::Either,
     prelude::{
-        ClassAttribute, Effect, ElementChild, For, Get, GlobalAttributes, IntoAny, Memo,
+        Callback, ClassAttribute, Effect, ElementChild, For, Get, GlobalAttributes, IntoAny, Memo,
         OnAttribute, ReadSignal, Set, Signal, Write, WriteSignal,
     },
     view, IntoView,
@@ -13,7 +13,7 @@ use reactive_stores::Store;
 use stacktrace::sem_log::{GroupNumber, LogBlock, NestingLevel};
 
 use crate::{
-    components::LogLineSegmentsDiv,
+    components::{LogBlockSquishedControlsDiv, LogLineSegmentsDiv},
     state::{SemLogViewerState, SemLogViewerStateStoreFields},
 };
 
@@ -166,6 +166,7 @@ pub fn LogBlockDiv(
                 Either::Left(view! {
                     <LogBlockDivSquished
                         log_block={log_block.clone()}
+                        groupings_significance
                         classes=first_line_css_classes
                     />
                 })
@@ -193,8 +194,31 @@ pub fn LogBlockDiv(
 #[component]
 pub fn LogBlockDivSquished(
     log_block: LogBlock<'static>,
-    #[prop(into)] classes: Signal<Cow<'static, str>>,
+    groupings_significance: GroupingsSignificance,
+    classes: Signal<Cow<'static, str>>,
 ) -> impl IntoView {
+    let sem_log_viewer_state = leptos::prelude::expect_context::<Store<SemLogViewerState>>();
+    let group_number = log_block.group_number;
+    let unsquish_this = if let GroupingsSignificance::Significant {
+        nesting_level_parent,
+        block_index_parent,
+    } = groupings_significance
+    {
+        Some(move || {
+            let log_block_group_numbers_squished =
+                sem_log_viewer_state.log_block_group_numbers_squished();
+
+            log_block_group_numbers_squished
+                .write()
+                .entry((nesting_level_parent, block_index_parent))
+                .or_default()
+                .remove(&group_number);
+        })
+    } else {
+        None
+    }
+    .map(Callback::from);
+
     let line = log_block
         .line_segments_collapsed
         .iter()
@@ -203,6 +227,7 @@ pub fn LogBlockDivSquished(
             line.push_str(&segment.separator);
             line
         });
+
     view! {
         <div
             class={move || classes.get()}
@@ -221,6 +246,9 @@ pub fn LogBlockDivSquished(
             >
                 {line}
             </div>
+            <LogBlockSquishedControlsDiv
+                unsquish_this
+            />
         </div>
     }
 }
