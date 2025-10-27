@@ -3,6 +3,8 @@ use std::ops::{Add, Deref, DerefMut, Sub};
 /// The depth at which a [`LogBlock`] is nested within its parent.
 ///
 /// `0` represents the root level, while higher values indicate deeper nesting.
+///
+/// [`LogBlock`]: crate::sem_log::LogBlock
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct NestingLevel(u8);
 

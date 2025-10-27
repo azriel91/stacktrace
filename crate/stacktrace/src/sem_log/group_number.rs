@@ -2,6 +2,8 @@ use std::ops::{Deref, DerefMut};
 
 /// A number assigned to different [`LogBlock`]s that are semantically related,
 /// e.g. having the same package prefix / crate name.
+///
+/// [`LogBlock`]: crate::sem_log::LogBlock
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct GroupNumber(u32);
 

@@ -4,6 +4,8 @@ use std::{
 };
 
 /// A prefix used to group [`LogBlock`] semantically.
+///
+/// [`LogBlock`]: crate::sem_log::LogBlock
 #[derive(Clone, Debug, Default, PartialEq, Eq, Hash)]
 pub struct GroupPrefix<'s>(Vec<Cow<'s, str>>);
 
