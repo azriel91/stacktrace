@@ -1,4 +1,5 @@
 pub use self::{
+    log_block_controls_div::LogBlockControlsDiv,
     log_block_div::{GroupingsSignificance, LogBlockDiv},
     log_line_segment_span::LogLineSegmentSpan,
     log_line_segments_div::LogLineSegmentsDiv,
@@ -6,6 +7,7 @@ pub use self::{
     sem_log_viewer_div::SemLogViewerDiv,
 };
 
+mod log_block_controls_div;
 mod log_block_div;
 mod log_line_segment_span;
 mod log_line_segments_div;
