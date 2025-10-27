@@ -35,6 +35,12 @@ const BLOCK_CLASSES: &str = "\
     group-focus:border-blue-400 \
 ";
 
+const BLOCK_SIGNIFICANT_CLASSES: &str = "\
+    group \
+    focus-within:border \
+    focus-within:border-blue-400 \
+";
+
 /// Multiple `hover:open` selectors so that we only highlight the border if
 /// there are no nested [`LogBlockDiv`]s that are also hovered.
 const BLOCK_DETAILS_CLASSES: &str = "\
@@ -303,11 +309,9 @@ pub fn LogBlockDivUnsquished(
         Either::Right(view! {
             <div
                 class={move || classes.get()}
-                tabindex="0"
             >
                 <details
                     class=BLOCK_DETAILS_CLASSES
-                    tabindex="0"
                     open={move || expanded.get()}
                     on:toggle=move |event| {
                         let expanded_override = Some(event.new_state() == "open");
@@ -362,13 +366,17 @@ fn first_line_css_classes(
             let bg_colour =
                 BLOCK_BG_COLOURS[group_number.into_inner().try_into().unwrap_or(block_index)
                     % BLOCK_BG_COLOURS.len()];
-            Cow::Owned(format!("{base_classes} group {bg_colour}"))
+            Cow::Owned(format!(
+                "{base_classes} {BLOCK_SIGNIFICANT_CLASSES} {bg_colour}"
+            ))
         }
         (GroupingsSignificance::Significant { .. }, true) => {
             let bg_colour =
                 BLOCK_BG_COLOURS[group_number.into_inner().try_into().unwrap_or(block_index)
                     % BLOCK_BG_COLOURS.len()];
-            Cow::Owned(format!("group {bg_colour} {BLOCK_SQUARE_CLASSES}"))
+            Cow::Owned(format!(
+                "{BLOCK_SIGNIFICANT_CLASSES} {bg_colour} {BLOCK_SQUARE_CLASSES}"
+            ))
         }
     }
 }
