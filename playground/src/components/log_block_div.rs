@@ -26,9 +26,18 @@ const LINE_CLASSES: &str = "\
     rounded-lg \
 ";
 
+const BLOCK_CLASSES: &str = "\
+    rounded-lg \
+    border-s \
+    border-transparent \
+    hover:border-blue-400 \
+    group-focus:border \
+    group-focus:border-blue-400 \
+";
+
 /// Multiple `hover:open` selectors so that we only highlight the border if
 /// there are no nested [`LogBlockDiv`]s that are also hovered.
-const BLOCK_CLASSES: &str = "\
+const BLOCK_DETAILS_CLASSES: &str = "\
     rounded-lg \
     border-s \
     border-transparent \
@@ -36,8 +45,9 @@ const BLOCK_CLASSES: &str = "\
     open:border-blue-400 \
     hover:open:border-blue-200 \
     hover:open:has-[:hover:open]:border-blue-400 \
-    focus:open:border-blue-200 \
-    focus:open:has-[:hover:open]:border-blue-400 \
+    group-focus:border \
+    group-focus:open:border-blue-200 \
+    group-focus:open:has-[:hover:open]:border-blue-400 \
 ";
 
 const BLOCK_BG_COLOURS: [&str; 6] = [
@@ -292,10 +302,12 @@ pub fn LogBlockDivUnsquished(
 
         Either::Right(view! {
             <div
+                class={move || classes.get()}
                 tabindex="0"
             >
                 <details
-                    class={move || classes.get()}
+                    class=BLOCK_DETAILS_CLASSES
+                    tabindex="0"
                     open={move || expanded.get()}
                     on:toggle=move |event| {
                         let expanded_override = Some(event.new_state() == "open");

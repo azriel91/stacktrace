@@ -26,8 +26,8 @@ pub fn LogBlockControlsDiv(#[prop(into)] squish_all_others: Callback<()>) -> imp
                     bg-slate-600 \
                     hover:border-slate-500 \
                     hover:bg-slate-400 \
-                    focus:border-slate-600 \
-                    focus:bg-slate-500 \
+                    group-focus:border-slate-600 \
+                    group-focus:bg-slate-500 \
                     active:border-slate-900 \
                     active:bg-slate-700 \
                 "
