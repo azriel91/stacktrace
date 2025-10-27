@@ -1,6 +1,8 @@
 use std::borrow::Cow;
 
-use crate::sem_log::{IntoLogBlock, LogBlock, LogLineSegment, LogLineSegmentKind};
+use crate::sem_log::{
+    GroupNumber, IntoLogBlock, LogBlock, LogLineSegment, LogLineSegmentKind, NestingLevel,
+};
 
 /// A log message that isn't specially treated.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -23,8 +25,9 @@ impl<'s> IntoLogBlock<'s> for LogEntryNormal<'s> {
         let children_collapsed_text = Cow::Borrowed("");
 
         LogBlock {
-            nesting_level: 0,
-            group_number: 0,
+            nesting_level: NestingLevel::new(0),
+            group_number: GroupNumber::new(0),
+            group_numbers_to_prefix: None, // Idea: This could be per thread, or per project / crate
             text,
             line_segments,
             line_segments_collapsed,

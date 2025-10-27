@@ -1,22 +1,32 @@
-use std::time::Duration;
+use std::{
+    collections::{BTreeMap, HashMap},
+    time::Duration,
+};
 
 use leptos::{
     component,
     hydration::{AutoReload, HydrationScripts},
     prelude::{
         event_target_value, signal, ClassAttribute, ElementChild, Get, GlobalAttributes, IntoView,
-        LeptosOptions, Memo, OnAttribute, PropAttribute, RwSignal, Signal, Write,
+        LeptosOptions, Memo, OnAttribute, PropAttribute, RwSignal, Set, Signal, Write,
     },
     view,
 };
-use leptos_meta::{provide_meta_context, MetaTags, Title};
+use leptos_meta::{MetaTags, Title};
 use leptos_router::{
     components::{Route, Router, Routes, RoutingProgress, A},
     StaticSegment,
 };
-use stacktrace::{sem_log::SemLog, LogParser};
+use reactive_stores::Store;
+use stacktrace::{
+    sem_log::{GroupNumberToPrefix, SemLog},
+    LogParser,
+};
 
-use crate::components::SemLogViewerDiv;
+use crate::{
+    components::SemLogViewerDiv,
+    state::{SemLogViewerState, SemLogViewerStateStoreFields},
+};
 
 pub fn shell(options: LeptosOptions) -> impl IntoView {
     view! {
@@ -40,8 +50,9 @@ const PAGE_CLASSES: &str = "\
     bg-slate-800 \
     text-slate-100 \
     \
-    h-dvh \
-    w-dvw \
+    min-h-dvh \
+    max-w-dvw \
+    overflow-scroll \
     p-8 \
     \
     flex \
@@ -72,9 +83,11 @@ const MAIN_CLASSES: &str = "\
 ";
 
 const HOMEPAGE_CLASSES: &str = "\
-    h-full \
-    w-full \
+    h-dvh \
+    w-dvw \
     lg:max-w-7xl \
+    flex \
+    flex-col \
 ";
 
 const STACKTRACE_TEXT_CLASSES: &str = "\
@@ -288,7 +301,11 @@ const STACKTRACE_SAMPLE_RUST: &str = r#"stack backtrace:
 #[component]
 pub fn App() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
-    provide_meta_context();
+    leptos_meta::provide_meta_context();
+
+    // Provides context to allow interactions on one [`LogBlock`] to control
+    // visibility of other [`LogBlock`]s
+    leptos::prelude::provide_context(Store::new(SemLogViewerState::default()));
 
     let site_prefix = option_env!("SITE_PREFIX").unwrap_or("");
 
@@ -329,6 +346,7 @@ pub fn App() -> impl IntoView {
 /// Renders the home page of your application.
 #[component]
 fn HomePage() -> impl IntoView {
+    let sem_log_viewer_state = leptos::prelude::expect_context::<Store<SemLogViewerState>>();
     let log_str = RwSignal::new(String::new());
     let log_on_input = move |ev| *log_str.write() = event_target_value(&ev);
     let sem_log_result = Memo::new(move |_previous| {
@@ -337,7 +355,42 @@ fn HomePage() -> impl IntoView {
             .map(SemLog::from)
             .map(|sem_log| sem_log.into_static())
     });
-    let sem_log = Signal::derive(move || sem_log_result.get().ok());
+    let sem_log = Signal::derive(move || {
+        let sem_log = sem_log_result.get().ok();
+
+        if let Some(sem_log) = sem_log.as_ref() {
+            let log_block_group_numbers_to_prefixes_next =
+                sem_log.log_blocks.iter().enumerate().fold(
+                    HashMap::with_capacity(sem_log.log_blocks.len()),
+                    |mut log_block_group_numbers_to_prefixes_next, (block_index, log_block)| {
+                        if let Some(group_numbers_to_prefix) =
+                            log_block.group_numbers_to_prefix.clone()
+                        {
+                            let group_numbers_to_prefix_acc: &mut BTreeMap<
+                                usize,
+                                GroupNumberToPrefix<'static>,
+                            > = log_block_group_numbers_to_prefixes_next
+                                .entry(log_block.nesting_level)
+                                .or_default();
+                            group_numbers_to_prefix_acc
+                                .insert(block_index, group_numbers_to_prefix);
+                        }
+                        log_block_group_numbers_to_prefixes_next
+                    },
+                );
+
+            sem_log_viewer_state
+                .log_block_group_numbers_to_prefixes()
+                .set(log_block_group_numbers_to_prefixes_next);
+
+            sem_log_viewer_state
+                .log_block_group_numbers_squished()
+                .write()
+                .clear();
+        }
+
+        sem_log
+    });
 
     view! {
         <div class=HOMEPAGE_CLASSES>

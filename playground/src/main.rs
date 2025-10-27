@@ -4,6 +4,7 @@
 // Perhaps a better solution is to rename the binary, so we don't compile the
 // modules twice.
 pub mod app;
+pub mod state;
 
 mod components;
 

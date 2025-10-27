@@ -156,16 +156,24 @@
 use crate::log::Log;
 
 pub use self::{
+    group_number::GroupNumber,
+    group_number_to_prefix::GroupNumberToPrefix,
+    group_prefix::GroupPrefix,
     into_log_block::IntoLogBlock,
     log_block::{LogBlock, LogBlockPartial},
     log_line_segment::LogLineSegment,
     log_line_segment_kind::LogLineSegmentKind,
+    nesting_level::NestingLevel,
 };
 
+mod group_number;
+mod group_number_to_prefix;
+mod group_prefix;
 mod into_log_block;
 mod log_block;
 mod log_line_segment;
 mod log_line_segment_kind;
+mod nesting_level;
 
 /// Logs with semantic information augmented to ease clear presentation.
 ///

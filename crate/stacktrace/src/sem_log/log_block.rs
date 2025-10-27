@@ -7,7 +7,7 @@ use crate::{
     log::java::{
         JavaMixedIdentifier, JavaQualifiedReference, JavaStacktraceFrame, JavaStacktraceFrameSource,
     },
-    sem_log::{LogLineSegment, LogLineSegmentKind},
+    sem_log::{GroupNumber, GroupNumberToPrefix, LogLineSegment, LogLineSegmentKind, NestingLevel},
 };
 
 /// A line in the log file.
@@ -21,7 +21,7 @@ pub struct LogBlock<'s> {
     ///
     /// This allows styling to be applied to the block based on its nesting
     /// level.
-    pub nesting_level: u8,
+    pub nesting_level: NestingLevel,
 
     /// Number assigned to this block so that different blocks with the same
     /// group number can be styled with the same background colour.
@@ -31,7 +31,19 @@ pub struct LogBlock<'s> {
     ///
     /// Blocks with the same `(nesting_level, group_number)` values should have
     /// the same background colour.
-    pub group_number: u32,
+    pub group_number: GroupNumber,
+
+    /// Mapping from group numbers to prefixes for styling.
+    ///
+    /// This is `Some` if the level of this block is at a level of detail useful
+    /// to filter by, e.g. blocks that are part of the same project / crate.
+    ///
+    /// These are not collected at the [`SemLog`] level, because when collapsing
+    /// (un)related blocks, we want to only do it for the [`LogBlock`] that
+    /// is visible on the screen, not the ones that are scrolled offscreen.
+    ///
+    /// [`SemLog`]: crate::sem_log::SemLog
+    pub group_numbers_to_prefix: Option<GroupNumberToPrefix<'s>>,
 
     /// Original text of this line, copied when the copy button is clicked.
     ///
@@ -60,6 +72,24 @@ impl<'s> LogBlock<'s> {
         LogBlock {
             nesting_level: self.nesting_level,
             group_number: self.group_number,
+            group_numbers_to_prefix: self.group_numbers_to_prefix.as_ref().map(
+                |group_numbers_to_prefix| {
+                    group_numbers_to_prefix.iter().fold(
+                        GroupNumberToPrefix::<'static>::new(),
+                        |mut group_numbers_to_prefix_next, (group_number, prefix)| {
+                            group_numbers_to_prefix_next.insert(
+                                *group_number,
+                                prefix
+                                    .iter()
+                                    .map(|segment| Cow::Owned(segment.clone().into_owned()))
+                                    .collect::<Vec<Cow<'static, str>>>()
+                                    .into(),
+                            );
+                            group_numbers_to_prefix_next
+                        },
+                    )
+                },
+            ),
             text: Cow::Owned(self.text.clone().into_owned()),
             line_segments: self
                 .line_segments
