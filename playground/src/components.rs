@@ -11,16 +11,13 @@ pub use self::{
 /// Classes for the `<div>` that contains the buttons.
 const LOG_BLOCK_CONTROLS_DIV_CLASSES: &str = "\
     flex-none \
-    opacity-0 \
-    group-hover:opacity-100 \
-    group-focus:opacity-100 \
-    group-focus-within:opacity-100 \
+    hidden \
+    group-hover:inline-block \
+    group-focus-within:inline-block \
 ";
 
 /// Classes for each `<button>`.
 const LOG_BLOCK_CONTROLS_DIV_BUTTON_CLASSES: &str = "\
-    px-1 \
-    py-1 \
     rounded \
     border \
     border-slate-800 \
