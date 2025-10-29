@@ -18,21 +18,25 @@ use crate::{
 };
 
 const LINE_CLASSES: &str = "\
+    rounded-lg \
     border \
     border-transparent \
     hover:border-blue-400 \
     px-2 \
     py-1 \
-    rounded-lg \
+    min-h-9 \
+    my-0.5 \
 ";
 
 const BLOCK_CLASSES: &str = "\
     rounded-lg \
-    border-s \
+    border \
     border-transparent \
-    hover:border-blue-400 \
+    hover:border-s-blue-400 \
     group-focus:border \
-    group-focus:border-blue-400 \
+    group-focus:border-s-blue-400 \
+    min-h-9 \
+    my-0.5 \
 ";
 
 const BLOCK_SIGNIFICANT_CLASSES: &str = "\
@@ -47,6 +51,7 @@ const BLOCK_DETAILS_CLASSES: &str = "\
     rounded-lg \
     border-s \
     border-transparent \
+    px-0.5 \
     open:px-2 \
     open:border-blue-400 \
     hover:open:border-blue-200 \
@@ -75,6 +80,7 @@ const BLOCK_SQUARE_CLASSES: &str = "\
     min-w-8 \
     h-8 \
     px-2 \
+    mr-1 \
 ";
 
 /// Renders a [`LogBlock`] in various forms, such as a collapsed line, a
@@ -234,6 +240,7 @@ pub fn LogBlockDivSquished(
             tabindex="0"
         >
             <div class="\
+                inline-block \
                 max-w-0 \
                 group-hover:max-w-3xs \
                 group-focus:max-w-3xs \
@@ -246,6 +253,7 @@ pub fn LogBlockDivSquished(
             >
                 {line}
             </div>
+            <div class="inline-block w-2" />
             <LogBlockSquishedControlsDiv
                 unsquish_this
             />
